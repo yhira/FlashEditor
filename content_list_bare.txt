@@ -1,4 +1,0 @@
-ChirashiNoUra
-content_list.txt
-content_list_bare.txt
-FlashEditor.sln
