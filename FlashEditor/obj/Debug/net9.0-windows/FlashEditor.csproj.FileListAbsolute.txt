@@ -1,0 +1,15 @@
+D:\Delphi\chirashi\FlashEditor\bin\Debug\net9.0-windows\FlashEditor.exe
+D:\Delphi\chirashi\FlashEditor\bin\Debug\net9.0-windows\FlashEditor.deps.json
+D:\Delphi\chirashi\FlashEditor\bin\Debug\net9.0-windows\FlashEditor.runtimeconfig.json
+D:\Delphi\chirashi\FlashEditor\bin\Debug\net9.0-windows\FlashEditor.dll
+D:\Delphi\chirashi\FlashEditor\bin\Debug\net9.0-windows\FlashEditor.pdb
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.GeneratedMSBuildEditorConfig.editorconfig
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.AssemblyInfoInputs.cache
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.AssemblyInfo.cs
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.csproj.CoreCompileInputs.cache
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.dll
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\refint\FlashEditor.dll
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.pdb
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\FlashEditor.genruntimeconfig.cache
+D:\Delphi\chirashi\FlashEditor\obj\Debug\net9.0-windows\ref\FlashEditor.dll
+D:\Delphi\chirashi\FlashEditor\bin\Debug\net9.0-windows\FlashEditor.ico

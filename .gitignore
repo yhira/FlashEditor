@@ -1,0 +1,34 @@
+# Delphi compiled binaries
+*.exe
+*.dll
+*.bpl
+*.bpi
+*.dcp
+*.so
+*.apk
+*.dcu
+*.ppu
+*.o
+*.a
+
+# Delphi temporary files
+*.dsk
+*.identcache
+*.local
+*.rsm
+*.map
+*.tvsconfig
+
+# Backup files
+__history/
+*.bak
+*.~*
+
+# Output directories
+Win32/
+Win64/
+Android/
+iOSDevice64/
+iOSSimulator/
+OSX32/
+Linux64/
