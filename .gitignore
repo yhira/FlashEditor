@@ -91,3 +91,13 @@ $RECYCLE.BIN/
 
 # Crash dumps
 *.dmp
+
+# Private/Log files
+*.log
+build_error.txt
+build_log.txt
+build_log2.txt
+content_list.txt
+content_list_bare.txt
+*.user
+
