@@ -25,7 +25,7 @@ public partial class MainForm : Form
         var contextMenu = new ContextMenuStrip();
         ((ToolStripMenuItem)contextMenu.Items.Add("切り取り", CreateContextIcon(DrawCutIcon), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
         ((ToolStripMenuItem)contextMenu.Items.Add("コピー", CreateContextIcon(DrawCopyIcon), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
-        ((ToolStripMenuItem)contextMenu.Items.Add("貼り付け", CreateContextIcon(DrawPasteIcon), (s, e) => txtMain.Paste())).ShortcutKeys = Keys.Control | Keys.V;
+        ((ToolStripMenuItem)contextMenu.Items.Add("貼り付け", CreateContextIcon(DrawPasteIcon), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
         ((ToolStripMenuItem)contextMenu.Items.Add("削除", CreateContextIcon(DrawDeleteIcon), (s, e) => { if (!string.IsNullOrEmpty(txtMain.SelectedText)) txtMain.SelectedText = ""; })).ShortcutKeys = Keys.Delete;
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add("Googleで検索", CreateContextIcon(DrawSearchIcon), TsbGoogleSearch_Click);
@@ -45,7 +45,7 @@ public partial class MainForm : Form
         
         tsbCut.Click += (s, e) => txtMain.Cut();
         tsbCopy.Click += (s, e) => txtMain.Copy();
-        tsbPaste.Click += (s, e) => txtMain.Paste();
+        tsbPaste.Click += (s, e) => PastePlainText();
         tsbDelete.Click += (s, e) => { if (!string.IsNullOrEmpty(txtMain.SelectedText)) txtMain.SelectedText = ""; };
         
         tsbGoogleSearch.Click += TsbGoogleSearch_Click;
@@ -55,6 +55,8 @@ public partial class MainForm : Form
         txtMain.LinkClicked += TxtMain_LinkClicked;
         // 選択状態が変わったらボタンの有効/無効を更新
         txtMain.SelectionChanged += (s, e) => UpdateSelectionButtons();
+        // Ctrl+Vの装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
+        txtMain.KeyDown += TxtMain_KeyDown;
 
         // 履歴スナップショット用タイマー (3秒間操作がなければ履歴保存)
         _snapshotTimer.Interval = 3000;
@@ -62,6 +64,9 @@ public partial class MainForm : Form
 
         // システムのテーマ変更を監視するなら WndProc で WM_SETTINGCHANGE をフックする必要があるが
         // 簡易的に今回は起動時のみ、あるいは設定画面での切り替えとする
+
+        // ドラッグ＆ドロップ有効化
+        txtMain.EnableAutoDragDrop = true;
     }
 
     private void ApplyTheme(ThemeManager.ThemeMode mode)
@@ -620,6 +625,27 @@ public partial class MainForm : Form
                 Process.Start(new ProcessStartInfo(e.LinkText) { UseShellExecute = true });
             }
             catch { }
+        }
+    }
+
+    // Ctrl+Vの装飾付き貼り付けを抑制
+    private void TxtMain_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Control && e.KeyCode == Keys.V)
+        {
+            e.Handled = true;
+            PastePlainText();
+        }
+    }
+
+    // クリップボードからプレーンテキストのみ貼り付け（装飾を除去）
+    private void PastePlainText()
+    {
+        if (Clipboard.ContainsText())
+        {
+            // プレーンテキストのみ取得して貼り付け
+            string text = Clipboard.GetText(TextDataFormat.UnicodeText);
+            txtMain.SelectedText = text;
         }
     }
 }
