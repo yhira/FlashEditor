@@ -1,4 +1,30 @@
-﻿
+﻿GitHubにてユニットテストについて、以下のような指摘がされています。これの説明をお願いします。
+https://github.com/xserver-inc/cocoon/actions/runs/22101616192/job/63872569546
+https://github.com/xserver-inc/cocoon/actions/runs/22101616192/job/63872569585
+https://github.com/xserver-inc/cocoon/actions/runs/22101616192/job/63872569559
+
+2026/02/17 火 23:43:14
+----------------------------------------
+最先端の Google AI 機能を最大限にご活用ください
+
+    check
+    Google の最先端の推論モデルと動画生成モデルへの限定アクセス
+    check
+    ソフトウェア デベロッパー向け非同期コーディング エージェントの上限が最大
+    check
+    AI 映像制作ツール
+    check
+    年内には、このリサーチと文章作成のアシスタントに最大の使用量上限を導入
+    check
+    Gemini in Gmail、Gemini in Google ドキュメントなど
+    check
+    Google フォト、Google ドライブ、Gmail で利用できる 30 TB の保存容量
+    check
+    その他の Google One プレミアムの特典
+
+2026/02/17 火 23:34:04
+----------------------------------------
+
 
 2026/02/17 火 23:27:36
 ----------------------------------------
