@@ -67,6 +67,9 @@ public partial class MainForm : Form
 
         // ドラッグ＆ドロップ有効化
         txtMain.EnableAutoDragDrop = true;
+
+        // フォームの最小サイズを設定（横600px × 縦300px）
+        this.MinimumSize = new Size(600, 300);
     }
 
     private void ApplyTheme(ThemeManager.ThemeMode mode)
@@ -436,14 +439,20 @@ public partial class MainForm : Form
         int w = _appData.Config.WindowWidth;
         int h = _appData.Config.WindowHeight;
 
-        // 位置補正（ざっくり）
+        // ウィンドウサイズが画面より大きい場合はクランプ
+        if (w > bounds.Width) w = bounds.Width;
+        if (h > bounds.Height) h = bounds.Height;
+
+        // 右端・下端からはみ出す場合は押し戻す
+        if (x + w > bounds.Right) x = bounds.Right - w;
+        if (y + h > bounds.Bottom) y = bounds.Bottom - h;
+
+        // 左端・上端からはみ出す場合は押し戻す
         if (x < bounds.Left) x = bounds.Left;
         if (y < bounds.Top) y = bounds.Top;
-        if (x + 100 > bounds.Right) x = bounds.Right - 100;
-        if (y + 100 > bounds.Bottom) y = bounds.Bottom - 100;
 
         this.Location = new Point(x, y);
-        this.Size = new Size(w, h); // 最小サイズチェックなどはForm側でやってもよい
+        this.Size = new Size(w, h);
 
         // 設定反映
         ApplySettings();
