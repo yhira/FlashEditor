@@ -459,7 +459,8 @@ public partial class MainForm : Form
 
         // テキスト復元
         txtMain.Text = _appData.MemoContent;
-        txtMain.SelectionStart = txtMain.Text.Length; // 末尾へ
+        // キャレットを先頭に移動
+        txtMain.SelectionStart = 0;
         
         // 初回履歴プッシュ
         _appData.History.Push(txtMain.Text);
