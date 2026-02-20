@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FlashEditor")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+71709038f1cadf24f0f62d62ec882ba3a0b7d635")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3e53556d77f1c79fa302ecde406989630425f30c")]
 [assembly: System.Reflection.AssemblyProductAttribute("FlashEditor")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FlashEditor")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
