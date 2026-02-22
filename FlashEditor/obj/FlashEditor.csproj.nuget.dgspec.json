@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "d:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj": {}
+    "D:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj": {}
   },
   "projects": {
-    "d:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj": {
+    "D:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "d:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj",
+        "projectUniqueName": "D:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj",
         "projectName": "FlashEditor",
-        "projectPath": "d:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj",
+        "projectPath": "D:\\Delphi\\FlashEditor\\FlashEditor\\FlashEditor.csproj",
         "packagesPath": "C:\\Users\\yhira_3az\\.nuget\\packages\\",
-        "outputPath": "d:\\Delphi\\FlashEditor\\FlashEditor\\obj\\",
+        "outputPath": "D:\\Delphi\\FlashEditor\\FlashEditor\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

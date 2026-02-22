@@ -459,8 +459,13 @@ public partial class MainForm : Form
 
         // テキスト復元
         txtMain.Text = _appData.MemoContent;
-        // キャレットを先頭に移動
-        txtMain.SelectionStart = 0;
+        // 描画完了後にキャレットを確実に先頭へ移動し、フォーカスを当てて点滅させる
+        this.BeginInvoke(new Action(() =>
+        {
+            txtMain.Select(0, 0);
+            txtMain.ScrollToCaret();
+            txtMain.Focus();
+        }));
         
         // 初回履歴プッシュ
         _appData.History.Push(txtMain.Text);
