@@ -23,10 +23,12 @@ public partial class AboutDialog : Form
 
     private void AboutDialog_Load(object sender, EventArgs e)
     {
-        // 多言語対応があればここで適用可能だが、シンプルなテキストにする
+        // 多言語対応のテキストを適用
+        this.Text = LocalizationManager.GetString("About_Title") ?? "バージョン情報";
         lblTitle.Text = "Flash Editor";
         lblVersion.Text = "Version 1.0";
-        lblAuthor.Text = "作者：yhira";
+        lblAuthor.Text = LocalizationManager.GetString("About_Author") ?? "作者：yhira";
+        btnOk.Text = LocalizationManager.GetString("Button_OK") ?? "OK";
     }
 
     private void LnkUrl_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

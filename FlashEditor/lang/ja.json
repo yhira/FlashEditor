@@ -23,5 +23,8 @@
   "Settings_ToolButtonSize_Large": "大 (Large)",
   "Settings_Language": "言語：",
   "Button_OK": "OK",
-  "Button_Cancel": "キャンセル"
+  "Button_Cancel": "キャンセル",
+  "Menu_About": "バージョン情報",
+  "About_Title": "バージョン情報",
+  "About_Author": "作者：yhira"
 }

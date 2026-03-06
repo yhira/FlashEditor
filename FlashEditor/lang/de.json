@@ -23,5 +23,8 @@
   "Settings_ToolButtonSize_Large": "Groß",
   "Settings_Language": "Sprache:",
   "Button_OK": "OK",
-  "Button_Cancel": "Abbrechen"
+  "Button_Cancel": "Abbrechen",
+  "Menu_About": "Info",
+  "About_Title": "Über",
+  "About_Author": "Autor: yhira"
 }

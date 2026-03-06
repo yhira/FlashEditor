@@ -23,5 +23,8 @@
   "Settings_ToolButtonSize_Large": "大 (Large)",
   "Settings_Language": "语言：",
   "Button_OK": "确定",
-  "Button_Cancel": "取消"
+  "Button_Cancel": "取消",
+  "Menu_About": "关于",
+  "About_Title": "关于",
+  "About_Author": "作者：yhira"
 }

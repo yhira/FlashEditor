@@ -23,5 +23,8 @@
   "Settings_ToolButtonSize_Large": "Large",
   "Settings_Language": "Language:",
   "Button_OK": "OK",
-  "Button_Cancel": "Cancel"
+  "Button_Cancel": "Cancel",
+  "Menu_About": "About",
+  "About_Title": "About Flash Editor",
+  "About_Author": "Author: yhira"
 }

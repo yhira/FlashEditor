@@ -23,5 +23,8 @@
   "Settings_ToolButtonSize_Large": "크게 (Large)",
   "Settings_Language": "언어:",
   "Button_OK": "확인",
-  "Button_Cancel": "취소"
+  "Button_Cancel": "취소",
+  "Menu_About": "정보",
+  "About_Title": "정보",
+  "About_Author": "제작자: yhira"
 }
