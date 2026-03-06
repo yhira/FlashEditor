@@ -231,24 +231,24 @@ public partial class MainForm : Form
         // === ピン (Push Pin) ===
         GeneratePinIcon(outline);
 
-        // === 元に戻す (Undo - 左向き弧矢印) ===
+        // === 元に戻す (Undo - 左回り弧矢印) ===
         tsbUndo.Image = CreateIcon(g => {
             using var pen = new Pen(outline, sw);
-            // 弧
-            g.DrawArc(pen, 5, 4, 10, 10, 220, 260);
-            // 矢印の先端（左向き）
-            g.DrawLine(pen, 5, 9, 2, 7);
-            g.DrawLine(pen, 5, 9, 3, 12);
+            // 弧 (右下から左上へ向かう)
+            g.DrawArc(pen, 5, 4, 10, 10, 225, 270);
+            // 矢印の先端 (左上の終点付近へ向かう)
+            g.DrawLine(pen, 5, 8.5f, 2, 7);
+            g.DrawLine(pen, 5, 8.5f, 4, 12);
         });
 
-        // === やり直し (Redo - 右向き弧矢印) ===
+        // === やり直し (Redo - 右回り弧矢印) ===
         tsbRedo.Image = CreateIcon(g => {
             using var pen = new Pen(outline, sw);
-            // 弧
-            g.DrawArc(pen, 5, 4, 10, 10, 0, 260);
-            // 矢印の先端（右向き）
-            g.DrawLine(pen, 15, 9, 18, 7);
-            g.DrawLine(pen, 15, 9, 17, 12);
+            // 弧 (左下から右上へ向かう) - Undoと鏡写し
+            g.DrawArc(pen, 5, 4, 10, 10, 45, 270);
+            // 矢印の先端 (右上の終点付近へ向かう)
+            g.DrawLine(pen, 15, 8.5f, 18, 7);
+            g.DrawLine(pen, 15, 8.5f, 16, 12);
         });
 
         // === はさみ (Cut) ===
