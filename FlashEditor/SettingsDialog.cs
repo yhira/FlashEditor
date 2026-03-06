@@ -8,14 +8,16 @@ public partial class SettingsDialog : Form
 {
     public Font CurrentFont { get; private set; }
     public ThemeSetting CurrentTheme { get; private set; }
+    public ToolButtonSizeSetting CurrentToolButtonSize { get; private set; }
 
-    public SettingsDialog(Font currentFont, ThemeSetting currentTheme)
+    public SettingsDialog(Font currentFont, ThemeSetting currentTheme, ToolButtonSizeSetting currentToolButtonSize)
     {
         InitializeComponent();
         CurrentFont = currentFont;
         CurrentTheme = currentTheme;
+        CurrentToolButtonSize = currentToolButtonSize;
 
-        // 初期値反映 (フォント)
+        // 初期値反映
         UpdateFontPreview();
 
         // テーマ選択肢の設定
@@ -24,15 +26,25 @@ public partial class SettingsDialog : Form
         cmbTheme.Items.Add("ダーク");
         cmbTheme.SelectedIndex = (int)CurrentTheme;
         // ComboBox のオーナードロー描画イベントを登録
-        cmbTheme.DrawItem += CmbTheme_DrawItem;
-        
+        cmbTheme.DrawItem += CmbOwnerDraw_DrawItem;
+
+        // ツールボタンサイズ選択肢の設定
+        cmbToolButtonSize.Items.Add("小 (32×32)");
+        cmbToolButtonSize.Items.Add("標準 (40×40)");
+        cmbToolButtonSize.Items.Add("大 (48×48)");
+        cmbToolButtonSize.SelectedIndex = (int)CurrentToolButtonSize;
+        // ComboBox のオーナードロー描画イベントを登録（テーマと共通）
+        cmbToolButtonSize.DrawItem += CmbOwnerDraw_DrawItem;
+
         ThemeManager.ApplyTheme(this, ThemeManager.Resolve(CurrentTheme));
     }
 
-    // ComboBox のオーナードロー描画（テーマに合わせた選択色を使用）
-    private void CmbTheme_DrawItem(object? sender, DrawItemEventArgs e)
+    // ComboBox のオーナードロー描画（テーマに合わせた選択色を使用・共通処理）
+    private void CmbOwnerDraw_DrawItem(object? sender, DrawItemEventArgs e)
     {
         if (e.Index < 0) return;
+        var cmb = sender as ComboBox;
+        if (cmb == null) return;
 
         // 現在のテーマに応じた色を決定
         bool isDark = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark;
@@ -49,13 +61,19 @@ public partial class SettingsDialog : Form
         e.Graphics.FillRectangle(bgBrush, e.Bounds);
 
         // テキスト描画 (垂直中央揃え)
-        string text = cmbTheme.Items[e.Index]?.ToString() ?? "";
+        string text = cmb.Items[e.Index]?.ToString() ?? "";
         using var textBrush = new SolidBrush(textColor);
         float yPos = e.Bounds.Y + (e.Bounds.Height - e.Font!.Height) / 2f;
         e.Graphics.DrawString(text, e.Font, textBrush, e.Bounds.X + 6, yPos);
 
         // フォーカス枠
         e.DrawFocusRectangle();
+    }
+
+    private void UpdateFontPreview()
+    {
+        lblFontPreview.Font = new Font(CurrentFont.FontFamily, 16f, CurrentFont.Style, GraphicsUnit.Point);
+        lblFontPreview.Text = $"{CurrentFont.Name}, {CurrentFont.Size}pt";
     }
 
     private void btnChangeFont_Click(object sender, EventArgs e)
@@ -69,16 +87,10 @@ public partial class SettingsDialog : Form
         }
     }
 
-    private void UpdateFontPreview()
-    {
-        // プレビュー用のフォントはサイズを16ptで固定し、ファミリとスタイルのみを適用する
-        lblFontPreview.Font = new Font(CurrentFont.FontFamily, 16f, CurrentFont.Style, GraphicsUnit.Point);
-        lblFontPreview.Text = $"{CurrentFont.Name}, {CurrentFont.Size}pt";
-    }
-
     private void btnOK_Click(object sender, EventArgs e)
     {
         CurrentTheme = (ThemeSetting)cmbTheme.SelectedIndex;
+        CurrentToolButtonSize = (ToolButtonSizeSetting)cmbToolButtonSize.SelectedIndex;
         this.DialogResult = DialogResult.OK;
         this.Close();
     }

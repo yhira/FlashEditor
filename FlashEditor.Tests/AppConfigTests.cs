@@ -122,4 +122,26 @@ public class AppConfigTests
         config.WindowWidth.Should().Be(800);
         config.WindowHeight.Should().Be(600);
     }
+
+    // ===== ツールボタンサイズテスト =====
+
+    [Fact]
+    public void デフォルトのToolButtonSizeはMedium()
+    {
+        var config = new AppConfig();
+
+        config.ToolButtonSize.Should().Be(ToolButtonSizeSetting.Medium);
+    }
+
+    [Theory]
+    [InlineData(ToolButtonSizeSetting.Small, 32)]
+    [InlineData(ToolButtonSizeSetting.Medium, 40)]
+    [InlineData(ToolButtonSizeSetting.Large, 48)]
+    public void GetToolButtonPixelSizeが正しいピクセル値を返す(ToolButtonSizeSetting setting, int expected)
+    {
+        var config = new AppConfig();
+        config.ToolButtonSize = setting;
+
+        config.GetToolButtonPixelSize().Should().Be(expected);
+    }
 }

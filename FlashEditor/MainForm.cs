@@ -49,8 +49,9 @@ public partial class MainForm : Form
         // エディターの枠線を消してマージン領域をシームレスにする
         txtMain.BorderStyle = BorderStyle.None;
 
-        // アイコン生成（32x32で表示、描画は20x20座標をスケーリング）
-        toolStrip1.ImageScalingSize = new Size(32, 32);
+        // アイコン生成（設定値に基づくサイズで表示、描画は20x20座標をスケーリング）
+        int iconSize = _appData.Config.GetToolButtonPixelSize();
+        toolStrip1.ImageScalingSize = new Size(iconSize, iconSize);
         toolStrip1.Renderer = new CustomToolStripRenderer(); // カスタムレンダラー適用 (無効時の表示変更)
         // ToolStripの左端グリップを非表示
         toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
@@ -305,10 +306,12 @@ public partial class MainForm : Form
         tsbPaste.Enabled = hasClipboardText;
     }
 
-    // 指定サイズのアイコンを生成する（デフォルト32x32、コンテキストメニュー用は16x16）
-    // ToolStripアイコンは20x20座標で描画し、32x32にスケーリングして鮮明に表示
-    private Image CreateIcon(Action<Graphics> drawAction, int size = 32)
+    // 指定サイズのアイコンを生成する（デフォルトは設定値サイズ、コンテキストメニュー用は16x16）
+    // ToolStripアイコンは20x20座標で描画し、設定サイズにスケーリングして鮮明に表示
+    private Image CreateIcon(Action<Graphics> drawAction, int size = -1)
     {
+        // サイズ未指定(-1)の場合は設定値から取得
+        if (size < 0) size = _appData.Config.GetToolButtonPixelSize();
         var bmp = new Bitmap(size, size);
         using var g = Graphics.FromImage(bmp);
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
@@ -463,7 +466,11 @@ public partial class MainForm : Form
         this.TopMost = _appData.Config.IsTopMost;
         tsbTopMost.Checked = this.TopMost;
 
-        // 保存された設定に基づいてテーマを適用
+        // ツールボタンサイズを反映
+        int iconSize = _appData.Config.GetToolButtonPixelSize();
+        toolStrip1.ImageScalingSize = new Size(iconSize, iconSize);
+
+        // 保存された設定に基づいてテーマを適用（アイコンも再生成される）
         ApplyTheme();
     }
 
@@ -508,12 +515,13 @@ public partial class MainForm : Form
 
     private void TsbSettings_Click(object? sender, EventArgs e)
     {
-        // 設定ダイアログを表示 (現在のフォントとテーマ設定を渡す)
-        using var dlg = new SettingsDialog(txtMain.Font, _appData.Config.Theme);
+        // 設定ダイアログを表示 (現在のフォント・テーマ・ツールボタンサイズを渡す)
+        using var dlg = new SettingsDialog(txtMain.Font, _appData.Config.Theme, _appData.Config.ToolButtonSize);
         if (dlg.ShowDialog(this) == DialogResult.OK)
         {
             _appData.Config.SetFont(dlg.CurrentFont);
             _appData.Config.Theme = dlg.CurrentTheme;
+            _appData.Config.ToolButtonSize = dlg.CurrentToolButtonSize;
             // 変更を即座に反映
             ApplySettings();
         }

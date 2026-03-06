@@ -68,10 +68,15 @@ public class AppData
 
 public enum ThemeSetting { System, Light, Dark }
 
+// ツールボタンサイズの設定値 (Small=32, Medium=40, Large=48)
+public enum ToolButtonSizeSetting { Small, Medium, Large }
+
 public class AppConfig
 {
     // テーマ設定 (System = OS設定に従う, Light = ライト, Dark = ダーク)
     public ThemeSetting Theme { get; set; } = ThemeSetting.System;
+    // ツールボタンサイズ設定
+    public ToolButtonSizeSetting ToolButtonSize { get; set; } = ToolButtonSizeSetting.Medium;
     public string FontName { get; set; } = "Meiryo";
     public float FontSize { get; set; } = 18.0f;
     // フォントスタイル (Bold/Italic 等を保存)
@@ -82,6 +87,17 @@ public class AppConfig
     public int WindowY { get; set; } = 100;
     public int WindowWidth { get; set; } = 1600;
     public int WindowHeight { get; set; } = 1200;
+
+    // ToolButtonSizeSetting からピクセルサイズを返すヘルパー
+    public int GetToolButtonPixelSize()
+    {
+        return ToolButtonSize switch
+        {
+            ToolButtonSizeSetting.Small  => 32,
+            ToolButtonSizeSetting.Large  => 48,
+            _                            => 40, // Medium (デフォルト)
+        };
+    }
 
     public void SetFont(Font font)
     {

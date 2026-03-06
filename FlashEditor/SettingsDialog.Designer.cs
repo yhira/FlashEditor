@@ -21,6 +21,8 @@ partial class SettingsDialog
         this.btnChangeFont = new System.Windows.Forms.Button();
         this.lblTheme = new System.Windows.Forms.Label();
         this.cmbTheme = new System.Windows.Forms.ComboBox();
+        this.lblToolButtonSize = new System.Windows.Forms.Label();
+        this.cmbToolButtonSize = new System.Windows.Forms.ComboBox();
         this.btnOK = new System.Windows.Forms.Button();
         this.btnCancel = new System.Windows.Forms.Button();
         this.SuspendLayout();
@@ -32,16 +34,16 @@ partial class SettingsDialog
         this.lblFont.Name = "lblFont";
         this.lblFont.Text = "フォント：";
         //
-        this.lblFontPreview.Location = new System.Drawing.Point(160, 20);
+        this.lblFontPreview.Location = new System.Drawing.Point(220, 20);
         this.lblFontPreview.Name = "lblFontPreview";
-        this.lblFontPreview.Size = new System.Drawing.Size(370, 40);
+        this.lblFontPreview.Size = new System.Drawing.Size(350, 40);
         this.lblFontPreview.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
         this.lblFontPreview.AutoEllipsis = true;
         this.lblFontPreview.Text = "サンプルテキスト";
         //
         // ── 行2: フォント変更ボタン ──
         //
-        this.btnChangeFont.Location = new System.Drawing.Point(160, 68);
+        this.btnChangeFont.Location = new System.Drawing.Point(220, 68);
         this.btnChangeFont.Name = "btnChangeFont";
         this.btnChangeFont.Size = new System.Drawing.Size(220, 40);
         this.btnChangeFont.TabIndex = 0;
@@ -49,38 +51,57 @@ partial class SettingsDialog
         this.btnChangeFont.UseVisualStyleBackColor = true;
         this.btnChangeFont.Click += new System.EventHandler(this.btnChangeFont_Click);
         //
-        // ── 行3: テーマ (余白を多めに確保) ──
+        //
+        // ── 行3: テーマ ──
         //
         this.lblTheme.AutoSize = true;
-        this.lblTheme.Location = new System.Drawing.Point(32, 142); // 132 -> 142 に下げて余白確保
+        this.lblTheme.Location = new System.Drawing.Point(32, 142);
         this.lblTheme.Name = "lblTheme";
         this.lblTheme.Text = "テーマ：";
         //
-        // ComboBox (ItemHeight をさらに拡大)
+        // cmbTheme
         //
         this.cmbTheme.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
         this.cmbTheme.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
         this.cmbTheme.FormattingEnabled = true;
-        this.cmbTheme.ItemHeight = 36; // 32 -> 36 に拡大
-        this.cmbTheme.Location = new System.Drawing.Point(160, 134); // 124 -> 134 に調整
+        this.cmbTheme.ItemHeight = 36;
+        this.cmbTheme.Location = new System.Drawing.Point(220, 134);
         this.cmbTheme.Name = "cmbTheme";
-        this.cmbTheme.Size = new System.Drawing.Size(370, 42); // ItemHeight + 枠分
+        this.cmbTheme.Size = new System.Drawing.Size(350, 42);
         this.cmbTheme.TabIndex = 1;
         //
-        // ── 行4: ボタン行 (右寄せ) ──
+        // ── 行4: ツールボタンサイズ ──
         //
-        this.btnOK.Location = new System.Drawing.Point(268, 205); // 190 -> 205
+        this.lblToolButtonSize.AutoSize = true;
+        this.lblToolButtonSize.Location = new System.Drawing.Point(32, 208);
+        this.lblToolButtonSize.Name = "lblToolButtonSize";
+        this.lblToolButtonSize.Text = "ボタンサイズ：";
+        //
+        // cmbToolButtonSize
+        //
+        this.cmbToolButtonSize.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawFixed;
+        this.cmbToolButtonSize.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+        this.cmbToolButtonSize.FormattingEnabled = true;
+        this.cmbToolButtonSize.ItemHeight = 36;
+        this.cmbToolButtonSize.Location = new System.Drawing.Point(220, 200);
+        this.cmbToolButtonSize.Name = "cmbToolButtonSize";
+        this.cmbToolButtonSize.Size = new System.Drawing.Size(350, 42);
+        this.cmbToolButtonSize.TabIndex = 2;
+        //
+        // ── 行5: ボタン行 (右寄せ) ──
+        //
+        this.btnOK.Location = new System.Drawing.Point(308, 280);
         this.btnOK.Name = "btnOK";
         this.btnOK.Size = new System.Drawing.Size(120, 40);
-        this.btnOK.TabIndex = 2;
+        this.btnOK.TabIndex = 3;
         this.btnOK.Text = "OK";
         this.btnOK.UseVisualStyleBackColor = true;
         this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
         //
-        this.btnCancel.Location = new System.Drawing.Point(400, 205);
+        this.btnCancel.Location = new System.Drawing.Point(440, 280);
         this.btnCancel.Name = "btnCancel";
         this.btnCancel.Size = new System.Drawing.Size(130, 40);
-        this.btnCancel.TabIndex = 3;
+        this.btnCancel.TabIndex = 4;
         this.btnCancel.Text = "キャンセル";
         this.btnCancel.UseVisualStyleBackColor = true;
         this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
@@ -90,13 +111,15 @@ partial class SettingsDialog
         this.AcceptButton = this.btnOK;
         this.CancelButton = this.btnCancel;
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-        this.ClientSize = new System.Drawing.Size(564, 270); // 254 -> 270 に拡大
+        this.ClientSize = new System.Drawing.Size(604, 350);
         this.ControlBox = false;
         this.Controls.Add(this.lblFont);
         this.Controls.Add(this.lblFontPreview);
         this.Controls.Add(this.btnChangeFont);
         this.Controls.Add(this.lblTheme);
         this.Controls.Add(this.cmbTheme);
+        this.Controls.Add(this.lblToolButtonSize);
+        this.Controls.Add(this.cmbToolButtonSize);
         this.Controls.Add(this.btnOK);
         this.Controls.Add(this.btnCancel);
         this.Font = new System.Drawing.Font("Yu Gothic UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
@@ -117,6 +140,8 @@ partial class SettingsDialog
     private System.Windows.Forms.Button btnChangeFont;
     private System.Windows.Forms.Label lblTheme;
     private System.Windows.Forms.ComboBox cmbTheme;
+    private System.Windows.Forms.Label lblToolButtonSize;
+    private System.Windows.Forms.ComboBox cmbToolButtonSize;
     private System.Windows.Forms.Button btnOK;
     private System.Windows.Forms.Button btnCancel;
 }
