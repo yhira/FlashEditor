@@ -108,8 +108,25 @@ public partial class MainForm : Form
         this.MinimumSize = new Size(600, 300);
     }
 
-    private void ApplyTheme(ThemeManager.ThemeMode mode)
+    // テーマを適用する。引数に null が渡された場合は設定ファイルから解決する。
+    private void ApplyTheme(ThemeManager.ThemeMode? forcedMode = null)
     {
+        ThemeManager.ThemeMode mode;
+        if (forcedMode.HasValue)
+        {
+            mode = forcedMode.Value;
+        }
+        else
+        {
+            // 設定に基づいてテーマを決定
+            mode = _appData.Config.Theme switch
+            {
+                ThemeSetting.Light => ThemeManager.ThemeMode.Light,
+                ThemeSetting.Dark => ThemeManager.ThemeMode.Dark,
+                _ => ThemeManager.GetSystemTheme() // System (Auto)
+            };
+        }
+
         ThemeManager.ApplyTheme(this, mode);
         GenerateIcons(mode);
     }
@@ -548,10 +565,8 @@ public partial class MainForm : Form
         this.TopMost = _appData.Config.IsTopMost;
         tsbTopMost.Checked = this.TopMost;
 
-        // 保存された最前面表示設定に応じたアイコンの傾きを適用
-        bool isDark = (ThemeManager.GetSystemTheme() == ThemeManager.ThemeMode.Dark);
-        Color outline = isDark ? Color.FromArgb(200, 200, 200) : Color.FromArgb(60, 60, 60);
-        GeneratePinIcon(outline);
+        // 保存された設定に基づいてテーマを適用
+        ApplyTheme();
     }
 
     private void TsbNewMemo_Click(object? sender, EventArgs e)
@@ -596,10 +611,13 @@ public partial class MainForm : Form
 
     private void TsbSettings_Click(object? sender, EventArgs e)
     {
-        using var dlg = new SettingsDialog(txtMain.Font);
+        // 設定ダイアログを表示 (現在のフォントとテーマ設定を渡す)
+        using var dlg = new SettingsDialog(txtMain.Font, _appData.Config.Theme);
         if (dlg.ShowDialog(this) == DialogResult.OK)
         {
             _appData.Config.SetFont(dlg.CurrentFont);
+            _appData.Config.Theme = dlg.CurrentTheme;
+            // 変更を即座に反映
             ApplySettings();
         }
     }

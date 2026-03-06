@@ -107,6 +107,22 @@ public static class ThemeManager
                 btn.FlatStyle = FlatStyle.Standard;
             }
         }
+        // コンボボックスのテーマ適用
+        else if (c is ComboBox cmb)
+        {
+            if (mode == ThemeMode.Dark)
+            {
+                cmb.BackColor = Color.FromArgb(50, 50, 50);
+                cmb.ForeColor = Color.WhiteSmoke;
+                cmb.FlatStyle = FlatStyle.Flat;
+            }
+            else
+            {
+                cmb.BackColor = SystemColors.Window;
+                cmb.ForeColor = SystemColors.WindowText;
+                cmb.FlatStyle = FlatStyle.Standard;
+            }
+        }
         // CheckBox, Label etc automatically inherit Form's ForeColor usually, unless explicitly set
         
         // Recursive

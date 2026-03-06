@@ -66,8 +66,12 @@ public class AppData
     }
 }
 
+public enum ThemeSetting { System, Light, Dark }
+
 public class AppConfig
 {
+    // テーマ設定 (System = OS設定に従う, Light = ライト, Dark = ダーク)
+    public ThemeSetting Theme { get; set; } = ThemeSetting.System;
     public string FontName { get; set; } = "Meiryo";
     public float FontSize { get; set; } = 18.0f;
     public bool IsTopMost { get; set; } = false;
@@ -87,10 +91,12 @@ public class AppConfig
     {
         try
         {
+            // 保存されたフォント名とサイズからフォントオブジェクトを作成
             return new Font(FontName, FontSize);
         }
         catch
         {
+            // 失敗した場合はシステムのデフォルトフォントを返す
             return SystemFonts.DefaultFont;
         }
     }
