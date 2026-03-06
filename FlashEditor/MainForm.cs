@@ -10,6 +10,9 @@ public partial class MainForm : Form
 {
     private readonly AppData _appData = new();
     private readonly Timer _snapshotTimer = new();
+    private readonly Timer _tooltipTimer = new();
+    private readonly ToolTip _customToolTip = new();
+    private ToolStripItem? _hoveredItem;
     private bool _isUndoRedoAction = false;
 
     // Win32 API: RichTextBox 内部のテキスト描画領域を設定するために使用
@@ -55,8 +58,28 @@ public partial class MainForm : Form
         toolStrip1.Renderer = new CustomToolStripRenderer(); // カスタムレンダラー適用 (無効時の表示変更)
         // ToolStripの左端グリップを非表示
         toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
-        // ツールチップを明示的に有効化
-        toolStrip1.ShowItemToolTips = true;
+
+        // ToolStrip標準のツールチップ表示を無効化し、カスタムツールチップを初期化
+        toolStrip1.ShowItemToolTips = false;
+        _customToolTip.OwnerDraw = true;
+        _customToolTip.Draw += CustomToolTip_Draw;
+        _customToolTip.Popup += CustomToolTip_Popup;
+        
+        _tooltipTimer.Interval = 500;
+        _tooltipTimer.Tick += TooltipTimer_Tick;
+
+        foreach (ToolStripItem item in toolStrip1.Items)
+        {
+            item.MouseEnter += ToolStripItem_MouseEnter;
+            item.MouseLeave += ToolStripItem_MouseLeave;
+            
+            // MouseDownでToolTipを消す（クリック後に出残りするのを防ぐ）
+            item.MouseDown += (s, e) => {
+                _tooltipTimer.Stop();
+                _customToolTip.Hide(toolStrip1);
+            };
+        }
+
         // ToolStripの上下パディングを追加してアイコンを大きく見せる
         toolStrip1.Padding = new Padding(4, 2, 4, 2);
         // テーマ適用 (初期化時にシステム設定を見る)
@@ -378,6 +401,68 @@ public partial class MainForm : Form
         g.DrawLine(penB, 8, 7, 14, 7);
     }
 
+    // --- カスタムツールチップのイベント処理 ---
+
+    private void ToolStripItem_MouseEnter(object? sender, EventArgs e)
+    {
+        if (sender is ToolStripItem item && !string.IsNullOrEmpty(item.ToolTipText))
+        {
+            _hoveredItem = item;
+            _tooltipTimer.Stop();
+            _tooltipTimer.Start();
+        }
+    }
+
+    private void ToolStripItem_MouseLeave(object? sender, EventArgs e)
+    {
+        _tooltipTimer.Stop();
+        _customToolTip.Hide(toolStrip1);
+        _hoveredItem = null;
+    }
+
+    private void TooltipTimer_Tick(object? sender, EventArgs e)
+    {
+        _tooltipTimer.Stop();
+        if (_hoveredItem != null)
+        {
+            // ToolStrip内での位置の下に表示
+            Point pt = new Point(_hoveredItem.Bounds.Left, _hoveredItem.Bounds.Bottom + 4);
+            _customToolTip.Show(_hoveredItem.ToolTipText, toolStrip1, pt);
+        }
+    }
+
+    private void CustomToolTip_Popup(object? sender, PopupEventArgs e)
+    {
+        // ツールチップのサイズに余白を持たせる
+        e.ToolTipSize = new Size(e.ToolTipSize.Width + 12, e.ToolTipSize.Height + 8);
+    }
+
+    private void CustomToolTip_Draw(object? sender, DrawToolTipEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+
+        Color backColor = isDark ? Color.FromArgb(43, 43, 43) : SystemColors.Info;
+        Color foreColor = isDark ? Color.WhiteSmoke : SystemColors.InfoText;
+        Color borderColor = isDark ? Color.FromArgb(100, 100, 100) : SystemColors.WindowFrame;
+
+        // 背景描画
+        using var bgBrush = new SolidBrush(backColor);
+        e.Graphics.FillRectangle(bgBrush, e.Bounds);
+
+        // 枠線描画
+        using var borderPen = new Pen(borderColor);
+        e.Graphics.DrawRectangle(borderPen, e.Bounds.X, e.Bounds.Y, e.Bounds.Width - 1, e.Bounds.Height - 1);
+
+        // テキスト描画 (余白を考慮して中央揃え)
+        using var textBrush = new SolidBrush(foreColor);
+        using var sf = new StringFormat
+        {
+            Alignment = StringAlignment.Center,
+            LineAlignment = StringAlignment.Center
+        };
+        Font font = e.Font ?? SystemFonts.DefaultFont;
+        e.Graphics.DrawString(e.ToolTipText, font, textBrush, e.Bounds, sf);
+    }
 
     private void MainForm_Load(object? sender, EventArgs e)
     {
