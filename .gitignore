@@ -109,3 +109,6 @@ Release/
 *.dll
 *.exe
 *.pdb
+
+# Archives
+*.zip
