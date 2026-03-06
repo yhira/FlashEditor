@@ -32,6 +32,7 @@ partial class MainForm
         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
         this.tsbGoogleSearch = new System.Windows.Forms.ToolStripButton();
         this.tsbSettings = new System.Windows.Forms.ToolStripButton();
+        this.tsbAbout = new System.Windows.Forms.ToolStripButton();
         this.txtMain = new System.Windows.Forms.RichTextBox();
         this.toolStrip1.SuspendLayout();
         this.SuspendLayout();
@@ -53,7 +54,8 @@ partial class MainForm
         this.toolStripSeparator2,
         this.tsbGoogleSearch,
         this.toolStripSeparator3,
-        this.tsbSettings});
+        this.tsbSettings,
+        this.tsbAbout});
         this.toolStrip1.Location = new System.Drawing.Point(0, 0);
         this.toolStrip1.Name = "toolStrip1";
         this.toolStrip1.Size = new System.Drawing.Size(800, 25);
@@ -171,6 +173,16 @@ partial class MainForm
         this.tsbSettings.Text = "設定";
         this.tsbSettings.ToolTipText = "設定";
         // 
+        // tsbAbout
+        // 
+        this.tsbAbout.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+        this.tsbAbout.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+        this.tsbAbout.ImageTransparentColor = System.Drawing.Color.Magenta;
+        this.tsbAbout.Name = "tsbAbout";
+        this.tsbAbout.Size = new System.Drawing.Size(23, 22);
+        this.tsbAbout.Text = "バージョン情報";
+        this.tsbAbout.ToolTipText = "バージョン情報";
+        // 
         // txtMain
         //
         this.txtMain.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -215,5 +227,6 @@ partial class MainForm
     private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
     private System.Windows.Forms.ToolStripButton tsbGoogleSearch;
     private System.Windows.Forms.ToolStripButton tsbSettings;
+    private System.Windows.Forms.ToolStripButton tsbAbout;
     private System.Windows.Forms.RichTextBox txtMain;
 }

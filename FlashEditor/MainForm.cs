@@ -104,6 +104,7 @@ public partial class MainForm : Form
         
         tsbGoogleSearch.Click += TsbGoogleSearch_Click;
         tsbSettings.Click += TsbSettings_Click;
+        tsbAbout.Click += TsbAbout_Click;
 
         txtMain.TextChanged += TxtMain_TextChanged;
         txtMain.LinkClicked += TxtMain_LinkClicked;
@@ -177,6 +178,9 @@ public partial class MainForm : Form
 
         tsbSettings.Text = LocalizationManager.GetString("Menu_Settings");
         tsbSettings.ToolTipText = LocalizationManager.GetString("Menu_Settings");
+
+        tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "バージョン情報";
+        tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "バージョン情報";
 
         RebuildContextMenu();
     }
@@ -328,6 +332,21 @@ public partial class MainForm : Form
             g.DrawPolygon(pen, pts.ToArray());
             // 中央の穴
             g.DrawEllipse(pen, cx - 3, cy - 3, 6, 6);
+        });
+
+        // === バージョン情報 (i マーク) ===
+        tsbAbout.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, sw);
+            // 円
+            g.DrawEllipse(pen, 2, 2, 16, 16);
+            // i の上部の点
+            g.DrawLine(pen, 10, 5, 10, 5.5f);
+            using var fillBrush = new SolidBrush(outline);
+            g.FillEllipse(fillBrush, 9f, 4.5f, 2f, 2f);
+            // i の下の線
+            g.DrawLine(pen, 10, 9, 10, 14);
+            g.DrawLine(pen, 8.5f, 14, 11.5f, 14);
+            g.DrawLine(pen, 8.5f, 9, 10, 9);
         });
     }
 
@@ -666,6 +685,12 @@ public partial class MainForm : Form
             // 変更を即座に反映
             ApplySettings();
         }
+    }
+
+    private void TsbAbout_Click(object? sender, EventArgs e)
+    {
+        using var dlg = new AboutDialog();
+        dlg.ShowDialog(this);
     }
 
     private void TsbUndo_Click(object? sender, EventArgs e)
