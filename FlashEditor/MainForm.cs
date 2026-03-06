@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Runtime.InteropServices;
 using Timer = System.Windows.Forms.Timer;
 
 namespace FlashEditor;
@@ -10,6 +11,27 @@ public partial class MainForm : Form
     private readonly AppData _appData = new();
     private readonly Timer _snapshotTimer = new();
     private bool _isUndoRedoAction = false;
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref RECT lParam);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT { public int Left, Top, Right, Bottom; }
+
+    private const int EM_SETRECT = 0xB3;
+    private const int EditorPadding = 8;
+
+    private void UpdateEditorPadding()
+    {
+        var rect = new RECT
+        {
+            Left   = EditorPadding,
+            Top    = EditorPadding,
+            Right  = txtMain.ClientSize.Width  - EditorPadding,
+            Bottom = txtMain.ClientSize.Height - EditorPadding,
+        };
+        SendMessage(txtMain.Handle, EM_SETRECT, IntPtr.Zero, ref rect);
+    }
 
     public MainForm()
     {
@@ -55,6 +77,8 @@ public partial class MainForm : Form
         txtMain.LinkClicked += TxtMain_LinkClicked;
         // 選択状態が変わったらボタンの有効/無効を更新
         txtMain.SelectionChanged += (s, e) => UpdateSelectionButtons();
+        // リサイズ時にパディングを再適用
+        txtMain.SizeChanged += (s, e) => UpdateEditorPadding();
         // Ctrl+Vの装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
         txtMain.KeyDown += TxtMain_KeyDown;
 
@@ -462,6 +486,7 @@ public partial class MainForm : Form
         // 描画完了後にキャレットを確実に先頭へ移動し、フォーカスを当てて点滅させる
         this.BeginInvoke(new Action(() =>
         {
+            UpdateEditorPadding();
             txtMain.Select(0, 0);
             txtMain.ScrollToCaret();
             txtMain.Focus();

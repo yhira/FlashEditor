@@ -171,7 +171,7 @@ partial class MainForm
         this.tsbSettings.ToolTipText = "設定";
         // 
         // txtMain
-        // 
+        //
         this.txtMain.Dock = System.Windows.Forms.DockStyle.Fill;
         this.txtMain.Location = new System.Drawing.Point(0, 25);
         this.txtMain.Name = "txtMain";
