@@ -146,4 +146,15 @@ public static class ThemeManager
         catch { }
         return ThemeMode.Light;
     }
+
+    // ThemeSetting (ユーザー設定値) から ThemeMode (実際の表示モード) へ変換する
+    public static ThemeMode Resolve(ThemeSetting setting)
+    {
+        return setting switch
+        {
+            ThemeSetting.Light => ThemeMode.Light,
+            ThemeSetting.Dark => ThemeMode.Dark,
+            _ => GetSystemTheme() // System (Auto)
+        };
+    }
 }

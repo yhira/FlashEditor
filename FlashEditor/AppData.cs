@@ -74,6 +74,8 @@ public class AppConfig
     public ThemeSetting Theme { get; set; } = ThemeSetting.System;
     public string FontName { get; set; } = "Meiryo";
     public float FontSize { get; set; } = 18.0f;
+    // フォントスタイル (Bold/Italic 等を保存)
+    public int FontStyleValue { get; set; } = (int)FontStyle.Regular;
     public bool IsTopMost { get; set; } = false;
     
     public int WindowX { get; set; } = 100;
@@ -85,14 +87,15 @@ public class AppConfig
     {
         FontName = font.Name;
         FontSize = font.Size;
+        FontStyleValue = (int)font.Style;
     }
 
     public Font GetFont()
     {
         try
         {
-            // 保存されたフォント名とサイズからフォントオブジェクトを作成
-            return new Font(FontName, FontSize);
+            // 保存されたフォント名・サイズ・スタイルからフォントオブジェクトを作成
+            return new Font(FontName, FontSize, (FontStyle)FontStyleValue);
         }
         catch
         {

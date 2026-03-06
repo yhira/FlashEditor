@@ -26,7 +26,7 @@ public partial class SettingsDialog : Form
         // ComboBox のオーナードロー描画イベントを登録
         cmbTheme.DrawItem += CmbTheme_DrawItem;
         
-        ThemeManager.ApplyTheme(this, ResolveThemeMode(CurrentTheme));
+        ThemeManager.ApplyTheme(this, ThemeManager.Resolve(CurrentTheme));
     }
 
     // ComboBox のオーナードロー描画（テーマに合わせた選択色を使用）
@@ -56,15 +56,6 @@ public partial class SettingsDialog : Form
 
         // フォーカス枠
         e.DrawFocusRectangle();
-    }
-
-    private ThemeManager.ThemeMode ResolveThemeMode(ThemeSetting setting)
-    {
-        if (setting == ThemeSetting.System)
-        {
-            return ThemeManager.GetSystemTheme();
-        }
-        return setting == ThemeSetting.Dark ? ThemeManager.ThemeMode.Dark : ThemeManager.ThemeMode.Light;
     }
 
     private void btnChangeFont_Click(object sender, EventArgs e)

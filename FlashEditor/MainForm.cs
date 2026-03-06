@@ -57,12 +57,12 @@ public partial class MainForm : Form
 
         // コンテキストメニュー生成 (アイコン付き)
         var contextMenu = new ContextMenuStrip();
-        ((ToolStripMenuItem)contextMenu.Items.Add("切り取り", CreateContextIcon(DrawCutIcon), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
-        ((ToolStripMenuItem)contextMenu.Items.Add("コピー", CreateContextIcon(DrawCopyIcon), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
-        ((ToolStripMenuItem)contextMenu.Items.Add("貼り付け", CreateContextIcon(DrawPasteIcon), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
-        ((ToolStripMenuItem)contextMenu.Items.Add("削除", CreateContextIcon(DrawDeleteIcon), (s, e) => { if (!string.IsNullOrEmpty(txtMain.SelectedText)) txtMain.SelectedText = ""; })).ShortcutKeys = Keys.Delete;
+        ((ToolStripMenuItem)contextMenu.Items.Add("切り取り", CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
+        ((ToolStripMenuItem)contextMenu.Items.Add("コピー", CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
+        ((ToolStripMenuItem)contextMenu.Items.Add("貼り付け", CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
+        ((ToolStripMenuItem)contextMenu.Items.Add("削除", CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeys = Keys.Delete;
         contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add("Googleで検索", CreateContextIcon(DrawSearchIcon), TsbGoogleSearch_Click);
+        contextMenu.Items.Add("Googleで検索", CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
         contextMenu.Items.Add(new ToolStripSeparator());
         ((ToolStripMenuItem)contextMenu.Items.Add("すべて選択", null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
         
@@ -80,7 +80,7 @@ public partial class MainForm : Form
         tsbCut.Click += (s, e) => txtMain.Cut();
         tsbCopy.Click += (s, e) => txtMain.Copy();
         tsbPaste.Click += (s, e) => PastePlainText();
-        tsbDelete.Click += (s, e) => { if (!string.IsNullOrEmpty(txtMain.SelectedText)) txtMain.SelectedText = ""; };
+        tsbDelete.Click += (s, e) => DeleteSelectedText();
         
         tsbGoogleSearch.Click += TsbGoogleSearch_Click;
         tsbSettings.Click += TsbSettings_Click;
@@ -111,31 +111,25 @@ public partial class MainForm : Form
     // テーマを適用する。引数に null が渡された場合は設定ファイルから解決する。
     private void ApplyTheme(ThemeManager.ThemeMode? forcedMode = null)
     {
-        ThemeManager.ThemeMode mode;
-        if (forcedMode.HasValue)
-        {
-            mode = forcedMode.Value;
-        }
-        else
-        {
-            // 設定に基づいてテーマを決定
-            mode = _appData.Config.Theme switch
-            {
-                ThemeSetting.Light => ThemeManager.ThemeMode.Light,
-                ThemeSetting.Dark => ThemeManager.ThemeMode.Dark,
-                _ => ThemeManager.GetSystemTheme() // System (Auto)
-            };
-        }
+        // 強制指定がなければ設定値から解決
+        ThemeManager.ThemeMode mode = forcedMode ?? ThemeManager.Resolve(_appData.Config.Theme);
 
         ThemeManager.ApplyTheme(this, mode);
         GenerateIcons(mode);
+    }
+
+    // テーマに応じたアウトライン色を取得する
+    private static Color GetOutlineColor(ThemeManager.ThemeMode mode)
+    {
+        bool isDark = (mode == ThemeManager.ThemeMode.Dark);
+        return isDark ? Color.FromArgb(200, 200, 200) : Color.FromArgb(60, 60, 60);
     }
 
     private void GenerateIcons(ThemeManager.ThemeMode mode = ThemeManager.ThemeMode.Light)
     {
         // テーマに応じた共通アウトライン色
         bool isDark = (mode == ThemeManager.ThemeMode.Dark);
-        Color outline = isDark ? Color.FromArgb(200, 200, 200) : Color.FromArgb(60, 60, 60);
+        Color outline = GetOutlineColor(mode);
 
         // === 新しいメモ (紙) ===
         tsbNewMemo.Image = CreateIcon(g => {
@@ -144,11 +138,13 @@ public partial class MainForm : Form
             PointF[] paper = {
                 new(6, 2), new(22, 2), new(26, 6), new(26, 30), new(6, 30)
             };
-            g.FillPolygon(new SolidBrush(isDark ? Color.FromArgb(230, 230, 230) : Color.White), paper);
+            using var paperBrush = new SolidBrush(isDark ? Color.FromArgb(230, 230, 230) : Color.White);
+            g.FillPolygon(paperBrush, paper);
             g.DrawPolygon(pen, paper);
             // 折り線 (右上角の折り)
             PointF[] fold = { new(22, 2), new(22, 6), new(26, 6) };
-            g.FillPolygon(new SolidBrush(Color.FromArgb(180, 200, 230)), fold);
+            using var foldBrush = new SolidBrush(Color.FromArgb(180, 200, 230));
+            g.FillPolygon(foldBrush, fold);
             g.DrawPolygon(pen, fold);
             // テキスト行
             using var linePen = new Pen(Color.FromArgb(170, 170, 170), 1.2f);
@@ -235,10 +231,12 @@ public partial class MainForm : Form
         tsbCopy.Image = CreateIcon(g => {
             using var pen = new Pen(outline, 1.5f);
             // 背面の紙 (青)
-            g.FillRectangle(new SolidBrush(Color.FromArgb(140, 180, 230)), 10, 3, 17, 21);
+            using var backBrush = new SolidBrush(Color.FromArgb(140, 180, 230));
+            g.FillRectangle(backBrush, 10, 3, 17, 21);
             g.DrawRectangle(pen, 10, 3, 17, 21);
             // 前面の紙 (白)
-            g.FillRectangle(new SolidBrush(isDark ? Color.FromArgb(220, 220, 220) : Color.White), 5, 8, 17, 21);
+            using var frontBrush = new SolidBrush(isDark ? Color.FromArgb(220, 220, 220) : Color.White);
+            g.FillRectangle(frontBrush, 5, 8, 17, 21);
             g.DrawRectangle(pen, 5, 8, 17, 21);
             // 行を示すライン
             using var linePen = new Pen(Color.FromArgb(180, 180, 180), 1f);
@@ -251,13 +249,16 @@ public partial class MainForm : Form
         tsbPaste.Image = CreateIcon(g => {
             using var pen = new Pen(outline, 1.5f);
             // ボード (茶色)
-            g.FillRectangle(new SolidBrush(Color.FromArgb(180, 140, 80)), 5, 6, 22, 23);
+            using var boardBrush = new SolidBrush(Color.FromArgb(180, 140, 80));
+            g.FillRectangle(boardBrush, 5, 6, 22, 23);
             g.DrawRectangle(pen, 5, 6, 22, 23);
             // 紙 (白)
-            g.FillRectangle(new SolidBrush(isDark ? Color.FromArgb(230, 230, 230) : Color.White), 8, 10, 16, 17);
+            using var pastePaperBrush = new SolidBrush(isDark ? Color.FromArgb(230, 230, 230) : Color.White);
+            g.FillRectangle(pastePaperBrush, 8, 10, 16, 17);
             g.DrawRectangle(pen, 8, 10, 16, 17);
             // クリップ (銀色)
-            g.FillRectangle(new SolidBrush(Color.FromArgb(160, 170, 180)), 12, 3, 8, 6);
+            using var clipBrush = new SolidBrush(Color.FromArgb(160, 170, 180));
+            g.FillRectangle(clipBrush, 12, 3, 8, 6);
             g.DrawRectangle(pen, 12, 3, 8, 6);
             // テキスト行
             using var linePen = new Pen(Color.FromArgb(180, 180, 180), 1f);
@@ -269,14 +270,15 @@ public partial class MainForm : Form
         tsbDelete.Image = CreateIcon(g => {
             using var pen = new Pen(outline, 1.5f);
             // ゴミ箱本体 (グレー)
-            var bodyColor = Color.FromArgb(170, 175, 180);
-            g.FillRectangle(new SolidBrush(bodyColor), 8, 10, 16, 19);
+            using var bodyBrush = new SolidBrush(Color.FromArgb(170, 175, 180));
+            g.FillRectangle(bodyBrush, 8, 10, 16, 19);
             // 台形風に少し下すぼまり
             g.DrawLine(pen, 8, 10, 8, 29);
             g.DrawLine(pen, 24, 10, 24, 29);
             g.DrawLine(pen, 8, 29, 24, 29);
             // フタ
-            g.FillRectangle(new SolidBrush(Color.FromArgb(130, 135, 140)), 6, 7, 20, 4);
+            using var lidBrush = new SolidBrush(Color.FromArgb(130, 135, 140));
+            g.FillRectangle(lidBrush, 6, 7, 20, 4);
             g.DrawRectangle(pen, 6, 7, 20, 4);
             // 取っ手
             g.DrawArc(pen, 12, 3, 8, 5, 180, 180);
@@ -291,10 +293,12 @@ public partial class MainForm : Form
         tsbGoogleSearch.Image = CreateIcon(g => {
             using var pen = new Pen(outline, 1.5f);
             // レンズ (水色)
-            g.FillEllipse(new SolidBrush(Color.FromArgb(160, 210, 240)), 4, 4, 18, 18);
+            using var lensBrush = new SolidBrush(Color.FromArgb(160, 210, 240));
+            g.FillEllipse(lensBrush, 4, 4, 18, 18);
             g.DrawEllipse(pen, 4, 4, 18, 18);
             // ハイライト
-            g.DrawArc(new Pen(Color.White, 2f), 8, 7, 10, 10, 200, 80);
+            using var highlightPen = new Pen(Color.White, 2f);
+            g.DrawArc(highlightPen, 8, 7, 10, 10, 200, 80);
             // 持ち手 (オレンジ)
             using var handlePen = new Pen(Color.FromArgb(220, 150, 50), 4f);
             g.DrawLine(handlePen, 20, 20, 28, 28);
@@ -327,7 +331,7 @@ public partial class MainForm : Form
             g.FillPolygon(gearBrush, pts.ToArray());
             g.DrawPolygon(pen, pts.ToArray());
             // 中央の穴 (背景色)
-            var holeBrush = new SolidBrush(isDark ? Color.FromArgb(45, 45, 48) : Color.FromArgb(240, 240, 240));
+            using var holeBrush = new SolidBrush(isDark ? Color.FromArgb(45, 45, 48) : Color.FromArgb(240, 240, 240));
             g.FillEllipse(holeBrush, cx - 4, cy - 4, 8, 8);
             g.DrawEllipse(pen, cx - 4, cy - 4, 8, 8);
         });
@@ -390,19 +394,10 @@ public partial class MainForm : Form
         tsbPaste.Enabled = hasClipboardText;
     }
 
-    private Image CreateIcon(Action<Graphics> drawAction)
+    // 指定サイズのアイコンを生成する（デフォルト32x32、コンテキストメニュー用は16x16）
+    private Image CreateIcon(Action<Graphics> drawAction, int size = 32)
     {
-        var bmp = new Bitmap(32, 32);
-        using var g = Graphics.FromImage(bmp);
-        g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        drawAction(g);
-        return bmp;
-    }
-
-    // コンテキストメニュー用の小さいアイコン (16x16)
-    private Image CreateContextIcon(Action<Graphics> drawAction)
-    {
-        var bmp = new Bitmap(16, 16);
+        var bmp = new Bitmap(size, size);
         using var g = Graphics.FromImage(bmp);
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         drawAction(g);
@@ -440,7 +435,8 @@ public partial class MainForm : Form
     private void DrawCopyIcon(Graphics g)
     {
         using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        g.FillRectangle(new SolidBrush(Color.FromArgb(140, 180, 230)), 5, 1, 9, 11);
+        using var backBrush = new SolidBrush(Color.FromArgb(140, 180, 230));
+        g.FillRectangle(backBrush, 5, 1, 9, 11);
         g.DrawRectangle(pen, 5, 1, 9, 11);
         g.FillRectangle(Brushes.White, 2, 4, 9, 11);
         g.DrawRectangle(pen, 2, 4, 9, 11);
@@ -449,22 +445,26 @@ public partial class MainForm : Form
     private void DrawPasteIcon(Graphics g)
     {
         using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        g.FillRectangle(new SolidBrush(Color.FromArgb(180, 140, 80)), 2, 3, 12, 12);
+        using var boardBrush = new SolidBrush(Color.FromArgb(180, 140, 80));
+        g.FillRectangle(boardBrush, 2, 3, 12, 12);
         g.DrawRectangle(pen, 2, 3, 12, 12);
         g.FillRectangle(Brushes.White, 4, 5, 8, 9);
         g.DrawRectangle(pen, 4, 5, 8, 9);
-        g.FillRectangle(new SolidBrush(Color.FromArgb(160, 170, 180)), 6, 1, 4, 3);
+        using var clipBrush = new SolidBrush(Color.FromArgb(160, 170, 180));
+        g.FillRectangle(clipBrush, 6, 1, 4, 3);
         g.DrawRectangle(pen, 6, 1, 4, 3);
     }
 
     private void DrawDeleteIcon(Graphics g)
     {
         using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        g.FillRectangle(new SolidBrush(Color.FromArgb(170, 175, 180)), 4, 5, 8, 10);
+        using var bodyBrush = new SolidBrush(Color.FromArgb(170, 175, 180));
+        g.FillRectangle(bodyBrush, 4, 5, 8, 10);
         g.DrawLine(pen, 4, 5, 4, 15);
         g.DrawLine(pen, 12, 5, 12, 15);
         g.DrawLine(pen, 4, 15, 12, 15);
-        g.FillRectangle(new SolidBrush(Color.FromArgb(130, 135, 140)), 3, 3, 10, 3);
+        using var lidBrush = new SolidBrush(Color.FromArgb(130, 135, 140));
+        g.FillRectangle(lidBrush, 3, 3, 10, 3);
         g.DrawRectangle(pen, 3, 3, 10, 3);
         g.DrawArc(pen, 6, 1, 4, 3, 180, 180);
     }
@@ -472,7 +472,8 @@ public partial class MainForm : Form
     private void DrawSearchIcon(Graphics g)
     {
         using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        g.FillEllipse(new SolidBrush(Color.FromArgb(160, 210, 240)), 2, 2, 9, 9);
+        using var lensBrush = new SolidBrush(Color.FromArgb(160, 210, 240));
+        g.FillEllipse(lensBrush, 2, 2, 9, 9);
         g.DrawEllipse(pen, 2, 2, 9, 9);
         using var handlePen = new Pen(Color.FromArgb(220, 150, 50), 2.5f);
         g.DrawLine(handlePen, 10, 10, 14, 14);
@@ -603,9 +604,8 @@ public partial class MainForm : Form
     {
         this.TopMost = tsbTopMost.Checked;
         _appData.Config.IsTopMost = this.TopMost;
-        // ピンアイコンを状態に応じて切り替え
-        bool isDark = (ThemeManager.GetSystemTheme() == ThemeManager.ThemeMode.Dark);
-        Color outline = isDark ? Color.FromArgb(200, 200, 200) : Color.FromArgb(60, 60, 60);
+        // ピンアイコンを状態に応じて切り替え（現在適用中のテーマを使用）
+        Color outline = GetOutlineColor(ThemeManager.CurrentTheme);
         GeneratePinIcon(outline);
     }
 
@@ -709,6 +709,15 @@ public partial class MainForm : Form
         {
             e.Handled = true;
             PastePlainText();
+        }
+    }
+
+    // 選択中のテキストを削除する
+    private void DeleteSelectedText()
+    {
+        if (!string.IsNullOrEmpty(txtMain.SelectedText))
+        {
+            txtMain.SelectedText = "";
         }
     }
 
