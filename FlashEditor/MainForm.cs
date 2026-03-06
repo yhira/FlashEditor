@@ -49,9 +49,15 @@ public partial class MainForm : Form
         // エディターの枠線を消してマージン領域をシームレスにする
         txtMain.BorderStyle = BorderStyle.None;
 
-        // アイコン生成
+        // アイコン生成（32x32で表示、描画は20x20座標をスケーリング）
         toolStrip1.ImageScalingSize = new Size(32, 32);
         toolStrip1.Renderer = new CustomToolStripRenderer(); // カスタムレンダラー適用 (無効時の表示変更)
+        // ToolStripの左端グリップを非表示
+        toolStrip1.GripStyle = ToolStripGripStyle.Hidden;
+        // ツールチップを明示的に有効化
+        toolStrip1.ShowItemToolTips = true;
+        // ToolStripの上下パディングを追加してアイコンを大きく見せる
+        toolStrip1.Padding = new Padding(4, 2, 4, 2);
         // テーマ適用 (初期化時にシステム設定を見る)
         ApplyTheme(ThemeManager.GetSystemTheme());
 
@@ -118,203 +124,127 @@ public partial class MainForm : Form
         GenerateIcons(mode);
     }
 
-    // テーマに応じたアウトライン色を取得する
+    // テーマに応じたアウトライン色を取得する（モノラインアイコン用）
     private static Color GetOutlineColor(ThemeManager.ThemeMode mode)
     {
         bool isDark = (mode == ThemeManager.ThemeMode.Dark);
-        return isDark ? Color.FromArgb(200, 200, 200) : Color.FromArgb(60, 60, 60);
+        return isDark ? Color.FromArgb(176, 176, 176) : Color.FromArgb(80, 80, 80);
     }
 
     private void GenerateIcons(ThemeManager.ThemeMode mode = ThemeManager.ThemeMode.Light)
     {
-        // テーマに応じた共通アウトライン色
-        bool isDark = (mode == ThemeManager.ThemeMode.Dark);
+        // テーマに応じた共通アウトライン色（モノライン統一）
         Color outline = GetOutlineColor(mode);
+        // 統一ストローク幅
+        const float sw = 1.5f;
 
-        // === 新しいメモ (紙) ===
+        // === 新しいメモ (紙 + 「+」マーク) ===
         tsbNewMemo.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            // 紙本体 (白)
-            PointF[] paper = {
-                new(6, 2), new(22, 2), new(26, 6), new(26, 30), new(6, 30)
-            };
-            using var paperBrush = new SolidBrush(isDark ? Color.FromArgb(230, 230, 230) : Color.White);
-            g.FillPolygon(paperBrush, paper);
-            g.DrawPolygon(pen, paper);
-            // 折り線 (右上角の折り)
-            PointF[] fold = { new(22, 2), new(22, 6), new(26, 6) };
-            using var foldBrush = new SolidBrush(Color.FromArgb(180, 200, 230));
-            g.FillPolygon(foldBrush, fold);
-            g.DrawPolygon(pen, fold);
+            using var pen = new Pen(outline, sw);
+            // 紙（折り付き）
+            g.DrawLine(pen, 4, 1, 13, 1);
+            g.DrawLine(pen, 13, 1, 16, 4);
+            g.DrawLine(pen, 16, 4, 16, 18);
+            g.DrawLine(pen, 16, 18, 4, 18);
+            g.DrawLine(pen, 4, 18, 4, 1);
+            g.DrawLine(pen, 13, 1, 13, 4);
+            g.DrawLine(pen, 13, 4, 16, 4);
             // テキスト行
-            using var linePen = new Pen(Color.FromArgb(170, 170, 170), 1.2f);
-            g.DrawLine(linePen, 9, 12, 23, 12);
-            g.DrawLine(linePen, 9, 16, 23, 16);
-            g.DrawLine(linePen, 9, 20, 20, 20);
-            // 「+」マーク (緑)
-            using var plusPen = new Pen(Color.FromArgb(60, 180, 80), 2f);
-            g.DrawLine(plusPen, 16, 24, 16, 30);
-            g.DrawLine(plusPen, 13, 27, 19, 27);
+            g.DrawLine(pen, 6, 7, 14, 7);
+            g.DrawLine(pen, 6, 10, 14, 10);
+            // 「+」マーク
+            g.DrawLine(pen, 10, 13, 10, 17);
+            g.DrawLine(pen, 8, 15, 12, 15);
         });
 
-        // === ピン (Push Pin) - 状態に応じて切り替え ===
+        // === ピン (Push Pin) ===
         GeneratePinIcon(outline);
 
-        // === 元に戻す (Undo - 左向き矢印) ===
+        // === 元に戻す (Undo - 左向き弧矢印) ===
         tsbUndo.Image = CreateIcon(g => {
-            // 塗りつぶした矢印
-            var arrowFill = Color.FromArgb(70, 130, 220);
-            using var fillBrush = new SolidBrush(arrowFill);
-            // 矢印の三角 + 弧
-            PointF[] arrow = {
-                new PointF(6, 16), new PointF(14, 8), new PointF(14, 12),
-                new PointF(20, 12), new PointF(22, 14), new PointF(22, 22),
-                new PointF(20, 24), new PointF(14, 24), new PointF(14, 20),
-                new PointF(14, 20), new PointF(6, 16)
-            };
-            g.FillPolygon(fillBrush, arrow);
-            using var pen = new Pen(outline, 1.5f);
-            g.DrawPolygon(pen, arrow);
+            using var pen = new Pen(outline, sw);
+            // 弧
+            g.DrawArc(pen, 5, 4, 10, 10, 220, 260);
+            // 矢印の先端（左向き）
+            g.DrawLine(pen, 5, 9, 2, 7);
+            g.DrawLine(pen, 5, 9, 3, 12);
         });
 
-        // === やり直し (Redo - 右向き矢印) ===
+        // === やり直し (Redo - 右向き弧矢印) ===
         tsbRedo.Image = CreateIcon(g => {
-            var arrowFill = Color.FromArgb(70, 130, 220);
-            using var fillBrush = new SolidBrush(arrowFill);
-            PointF[] arrow = {
-                new PointF(26, 16), new PointF(18, 8), new PointF(18, 12),
-                new PointF(12, 12), new PointF(10, 14), new PointF(10, 22),
-                new PointF(12, 24), new PointF(18, 24), new PointF(18, 20),
-                new PointF(18, 20), new PointF(26, 16)
-            };
-            g.FillPolygon(fillBrush, arrow);
-            using var pen = new Pen(outline, 1.5f);
-            g.DrawPolygon(pen, arrow);
+            using var pen = new Pen(outline, sw);
+            // 弧
+            g.DrawArc(pen, 5, 4, 10, 10, 0, 260);
+            // 矢印の先端（右向き）
+            g.DrawLine(pen, 15, 9, 18, 7);
+            g.DrawLine(pen, 15, 9, 17, 12);
         });
 
-        // === はさみ (Cut) - 下向きハサミ ===
-        // === はさみ (Cut) - 上向き、赤い持ち手 ===
+        // === はさみ (Cut) ===
         tsbCut.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            
-            // 刃 (銀色)
-            using var bladeBrush = new SolidBrush(Color.FromArgb(180, 180, 180));
-            // 左上向きの刃
-            PointF[] bladeL = { new(16, 16), new(6, 4), new(9, 3), new(18, 14) };
-            g.FillPolygon(bladeBrush, bladeL);
-            g.DrawPolygon(pen, bladeL);
-            // 右上向きの刃
-            PointF[] bladeR = { new(16, 16), new(26, 4), new(23, 3), new(14, 14) };
-            g.FillPolygon(bladeBrush, bladeR);
-            g.DrawPolygon(pen, bladeR);
-
-            // 持ち手 (赤)
-            using var handleBrush = new SolidBrush(Color.Tomato);
-            
-            // 左下の持ち手
-            g.FillEllipse(handleBrush, 4, 18, 10, 10);
-            g.DrawEllipse(pen, 4, 18, 10, 10);
-            g.FillEllipse(Brushes.White, 6, 20, 6, 6); // 穴
-            g.DrawEllipse(pen, 6, 20, 6, 6);
-
-            // 右下の持ち手
-            g.FillEllipse(handleBrush, 18, 18, 10, 10);
-            g.DrawEllipse(pen, 18, 18, 10, 10);
-            g.FillEllipse(Brushes.White, 20, 20, 6, 6); // 穴
-            g.DrawEllipse(pen, 20, 20, 6, 6);
-
-            // 支点 (ネジ)
-            g.FillEllipse(Brushes.DimGray, 14, 14, 4, 4);
+            using var pen = new Pen(outline, sw);
+            // 左の円（持ち手）
+            g.DrawEllipse(pen, 2, 12, 5, 5);
+            // 右の円（持ち手）
+            g.DrawEllipse(pen, 13, 12, 5, 5);
+            // 刃: 左持ち手→右上へ
+            g.DrawLine(pen, 5, 13, 14, 3);
+            // 刃: 右持ち手→左上へ
+            g.DrawLine(pen, 15, 13, 6, 3);
         });
 
-        // === コピー (2枚の紙) ===
+        // === コピー (2枚の四角) ===
         tsbCopy.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            // 背面の紙 (青)
-            using var backBrush = new SolidBrush(Color.FromArgb(140, 180, 230));
-            g.FillRectangle(backBrush, 10, 3, 17, 21);
-            g.DrawRectangle(pen, 10, 3, 17, 21);
-            // 前面の紙 (白)
-            using var frontBrush = new SolidBrush(isDark ? Color.FromArgb(220, 220, 220) : Color.White);
-            g.FillRectangle(frontBrush, 5, 8, 17, 21);
-            g.DrawRectangle(pen, 5, 8, 17, 21);
-            // 行を示すライン
-            using var linePen = new Pen(Color.FromArgb(180, 180, 180), 1f);
-            g.DrawLine(linePen, 8, 14, 19, 14);
-            g.DrawLine(linePen, 8, 18, 19, 18);
-            g.DrawLine(linePen, 8, 22, 16, 22);
+            using var pen = new Pen(outline, sw);
+            // 背面の四角
+            g.DrawRectangle(pen, 7, 2, 10, 12);
+            // 前面の四角
+            g.DrawRectangle(pen, 3, 6, 10, 12);
         });
 
         // === 貼り付け (クリップボード) ===
         tsbPaste.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            // ボード (茶色)
-            using var boardBrush = new SolidBrush(Color.FromArgb(180, 140, 80));
-            g.FillRectangle(boardBrush, 5, 6, 22, 23);
-            g.DrawRectangle(pen, 5, 6, 22, 23);
-            // 紙 (白)
-            using var pastePaperBrush = new SolidBrush(isDark ? Color.FromArgb(230, 230, 230) : Color.White);
-            g.FillRectangle(pastePaperBrush, 8, 10, 16, 17);
-            g.DrawRectangle(pen, 8, 10, 16, 17);
-            // クリップ (銀色)
-            using var clipBrush = new SolidBrush(Color.FromArgb(160, 170, 180));
-            g.FillRectangle(clipBrush, 12, 3, 8, 6);
-            g.DrawRectangle(pen, 12, 3, 8, 6);
-            // テキスト行
-            using var linePen = new Pen(Color.FromArgb(180, 180, 180), 1f);
-            g.DrawLine(linePen, 11, 15, 21, 15);
-            g.DrawLine(linePen, 11, 19, 21, 19);
+            using var pen = new Pen(outline, sw);
+            // ボード
+            g.DrawRectangle(pen, 3, 4, 14, 15);
+            // クリップ
+            g.DrawRectangle(pen, 7, 2, 6, 3);
+            // 紙の行
+            g.DrawLine(pen, 6, 10, 14, 10);
+            g.DrawLine(pen, 6, 13, 14, 13);
+            g.DrawLine(pen, 6, 16, 11, 16);
         });
 
-        // === 削除 (ゴミ箱) ===
+        // === 削除 (× 印) ===
         tsbDelete.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            // ゴミ箱本体 (グレー)
-            using var bodyBrush = new SolidBrush(Color.FromArgb(170, 175, 180));
-            g.FillRectangle(bodyBrush, 8, 10, 16, 19);
-            // 台形風に少し下すぼまり
-            g.DrawLine(pen, 8, 10, 8, 29);
-            g.DrawLine(pen, 24, 10, 24, 29);
-            g.DrawLine(pen, 8, 29, 24, 29);
-            // フタ
-            using var lidBrush = new SolidBrush(Color.FromArgb(130, 135, 140));
-            g.FillRectangle(lidBrush, 6, 7, 20, 4);
-            g.DrawRectangle(pen, 6, 7, 20, 4);
-            // 取っ手
-            g.DrawArc(pen, 12, 3, 8, 5, 180, 180);
-            // 縦のライン
-            using var linePen = new Pen(Color.FromArgb(140, 145, 150), 1.5f);
-            g.DrawLine(linePen, 13, 14, 13, 26);
-            g.DrawLine(linePen, 16, 14, 16, 26);
-            g.DrawLine(linePen, 19, 14, 19, 26);
+            using var pen = new Pen(outline, sw);
+            g.DrawLine(pen, 4, 4, 16, 16);
+            g.DrawLine(pen, 16, 4, 4, 16);
         });
 
-        // === Googleで検索 (虫眼鏡) ===
+        // === Googleで検索 (Googleロゴ - 4色の「G」) ===
         tsbGoogleSearch.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            // レンズ (水色)
-            using var lensBrush = new SolidBrush(Color.FromArgb(160, 210, 240));
-            g.FillEllipse(lensBrush, 4, 4, 18, 18);
-            g.DrawEllipse(pen, 4, 4, 18, 18);
-            // ハイライト
-            using var highlightPen = new Pen(Color.White, 2f);
-            g.DrawArc(highlightPen, 8, 7, 10, 10, 200, 80);
-            // 持ち手 (オレンジ)
-            using var handlePen = new Pen(Color.FromArgb(220, 150, 50), 4f);
-            g.DrawLine(handlePen, 20, 20, 28, 28);
-            using var handleOutline = new Pen(outline, 1.5f);
-            g.DrawLine(handleOutline, 19, 21, 28, 29);
-            g.DrawLine(handleOutline, 21, 19, 29, 28);
+            Color blue   = Color.FromArgb(66, 133, 244);
+            Color red    = Color.FromArgb(234, 67, 53);
+            Color yellow = Color.FromArgb(251, 188, 5);
+            Color green  = Color.FromArgb(52, 168, 83);
+            using var penBlue   = new Pen(blue, 2.5f);
+            using var penRed    = new Pen(red, 2.5f);
+            using var penYellow = new Pen(yellow, 2.5f);
+            using var penGreen  = new Pen(green, 2.5f);
+            var rect = new Rectangle(2, 2, 16, 16);
+            g.DrawArc(penBlue,   rect, 300, 75);
+            g.DrawArc(penRed,    rect, 225, 75);
+            g.DrawArc(penYellow, rect, 150, 75);
+            g.DrawArc(penGreen,  rect, 75, 75);
+            // 「G」の横棒（青）
+            g.DrawLine(penBlue, 10, 10, 17, 10);
         });
 
         // === 設定 (歯車) ===
         tsbSettings.Image = CreateIcon(g => {
-            using var pen = new Pen(outline, 1.5f);
-            // 歯車本体 (灰色/青灰色)
-            var gearColor = Color.FromArgb(130, 150, 170);
-            using var gearBrush = new SolidBrush(gearColor);
-            // 外周の歯
-            int cx = 16, cy = 16, outerR = 13, innerR = 10;
+            using var pen = new Pen(outline, sw);
+            int cx = 10, cy = 10, outerR = 8, innerR = 6;
             int teethCount = 8;
             var pts = new System.Collections.Generic.List<PointF>();
             for (int i = 0; i < teethCount; i++)
@@ -328,53 +258,34 @@ public partial class MainForm : Form
                 pts.Add(new PointF(cx + (float)(Math.Cos(aMid2) * outerR), cy + (float)(Math.Sin(aMid2) * outerR)));
                 pts.Add(new PointF(cx + (float)(Math.Cos(a2) * innerR), cy + (float)(Math.Sin(a2) * innerR)));
             }
-            g.FillPolygon(gearBrush, pts.ToArray());
             g.DrawPolygon(pen, pts.ToArray());
-            // 中央の穴 (背景色)
-            using var holeBrush = new SolidBrush(isDark ? Color.FromArgb(45, 45, 48) : Color.FromArgb(240, 240, 240));
-            g.FillEllipse(holeBrush, cx - 4, cy - 4, 8, 8);
-            g.DrawEllipse(pen, cx - 4, cy - 4, 8, 8);
+            // 中央の穴
+            g.DrawEllipse(pen, cx - 3, cy - 3, 6, 6);
         });
     }
 
-    // ピンアイコン生成 (TopMost状態に応じて傾き変更)
+    // ピンアイコン生成 (TopMost状態に応じて傾き変更) - モノライン
     private void GeneratePinIcon(Color outline)
     {
         bool tilted = tsbTopMost.Checked;
+        const float sw = 1.5f;
         tsbTopMost.Image = CreateIcon(g => {
-            // 共通の描画ロジック
-            // 有効時は右に45度傾ける (時計回り)
-            // 無効時はまっすぐ (0度)
             float angle = tilted ? 45f : 0f;
-
             var state = g.Save();
-            
-            // 下方へのシフト補正 (回転時に見切れ防止)
-            g.TranslateTransform(16, 16);
+            g.TranslateTransform(10, 10);
             g.RotateTransform(angle);
-            g.TranslateTransform(-16, -16);
-            
-            // まっすぐな状態での描画定義 (中心: 16,16 周辺)
-            // 針の先端が (16, 30) あたりに来るように調整
+            g.TranslateTransform(-10, -10);
 
-            // 針 (銀色/白)
-            // 中心軸 X=16
-            using var needleBrush = new LinearGradientBrush(new Point(14, 20), new Point(18, 20), Color.WhiteSmoke, Color.LightGray);
-            g.FillPolygon(needleBrush, new PointF[] { new(14, 20), new(18, 20), new(16, 30) });
-
-            // 本体色 (赤グラデーション)
-            Color redLight = Color.FromArgb(255, 80, 80);
-            Color redDark = Color.FromArgb(220, 40, 40);
-            using var redBrush = new LinearGradientBrush(new Point(8, 4), new Point(24, 20), redLight, redDark);
-
-            // 頭 (Head)
-            g.FillEllipse(redBrush, 10, 2, 12, 10); // 16中心 => 10..22
-
-            // 首 (Neck)
-            g.FillRectangle(redBrush, 13, 11, 6, 6); // 16中心 => 13..19
-
-            // 襟 (Collar)
-            g.FillEllipse(redBrush, 8, 14, 16, 8); // 16中心 => 8..24
+            using var pen = new Pen(outline, sw);
+            // 頭（丸）
+            g.DrawEllipse(pen, 6, 1, 8, 5);
+            // 首
+            g.DrawLine(pen, 8, 6, 8, 10);
+            g.DrawLine(pen, 12, 6, 12, 10);
+            // 襟（横棒）
+            g.DrawLine(pen, 5, 10, 15, 10);
+            // 針
+            g.DrawLine(pen, 10, 10, 10, 18);
 
             g.Restore(state);
         });
@@ -395,89 +306,75 @@ public partial class MainForm : Form
     }
 
     // 指定サイズのアイコンを生成する（デフォルト32x32、コンテキストメニュー用は16x16）
+    // ToolStripアイコンは20x20座標で描画し、32x32にスケーリングして鮮明に表示
     private Image CreateIcon(Action<Graphics> drawAction, int size = 32)
     {
         var bmp = new Bitmap(size, size);
         using var g = Graphics.FromImage(bmp);
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+        // 20x20座標のアイコンをサイズに合わせてスケーリング
+        if (size > 20)
+        {
+            float scale = size / 20f;
+            g.ScaleTransform(scale, scale);
+        }
         drawAction(g);
         return bmp;
     }
 
-    // コンテキストメニュー用アイコン描画 (16x16)
+    // === コンテキストメニュー用アイコン (16x16, モノライン統一) ===
+
+    // 切り取り (はさみ)
     private void DrawCutIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        using var bladeBrush = new SolidBrush(Color.FromArgb(180, 180, 180));
-        using var handleBrush = new SolidBrush(Color.Tomato);
-
-        // 刃
-        PointF[] b1 = { new(8, 8), new(3, 2), new(4, 2), new(9, 7) };
-        PointF[] b2 = { new(8, 8), new(13, 2), new(12, 2), new(7, 7) };
-        g.FillPolygon(bladeBrush, b1);
-        g.DrawPolygon(pen, b1);
-        g.FillPolygon(bladeBrush, b2);
-        g.DrawPolygon(pen, b2);
-
-        // 持ち手
-        g.FillEllipse(handleBrush, 2, 9, 5, 5);
-        g.DrawEllipse(pen, 2, 9, 5, 5);
-        g.FillEllipse(Brushes.White, 3, 10, 3, 3);
-        
-        g.FillEllipse(handleBrush, 9, 9, 5, 5);
-        g.DrawEllipse(pen, 9, 9, 5, 5);
-        g.FillEllipse(Brushes.White, 10, 10, 3, 3);
-        
-        // ネジ
-        g.FillEllipse(Brushes.DimGray, 7, 7, 2, 2);
+        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        g.DrawEllipse(pen, 1, 9, 4, 4);
+        g.DrawEllipse(pen, 10, 9, 4, 4);
+        g.DrawLine(pen, 3, 10, 11, 2);
+        g.DrawLine(pen, 12, 10, 4, 2);
     }
 
+    // コピー (2枚の四角)
     private void DrawCopyIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        using var backBrush = new SolidBrush(Color.FromArgb(140, 180, 230));
-        g.FillRectangle(backBrush, 5, 1, 9, 11);
-        g.DrawRectangle(pen, 5, 1, 9, 11);
-        g.FillRectangle(Brushes.White, 2, 4, 9, 11);
-        g.DrawRectangle(pen, 2, 4, 9, 11);
+        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        g.DrawRectangle(pen, 5, 1, 8, 10);
+        g.DrawRectangle(pen, 2, 4, 8, 10);
     }
 
+    // 貼り付け (クリップボード)
     private void DrawPasteIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        using var boardBrush = new SolidBrush(Color.FromArgb(180, 140, 80));
-        g.FillRectangle(boardBrush, 2, 3, 12, 12);
-        g.DrawRectangle(pen, 2, 3, 12, 12);
-        g.FillRectangle(Brushes.White, 4, 5, 8, 9);
-        g.DrawRectangle(pen, 4, 5, 8, 9);
-        using var clipBrush = new SolidBrush(Color.FromArgb(160, 170, 180));
-        g.FillRectangle(clipBrush, 6, 1, 4, 3);
-        g.DrawRectangle(pen, 6, 1, 4, 3);
+        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        g.DrawRectangle(pen, 2, 3, 11, 12);
+        g.DrawRectangle(pen, 5, 1, 5, 3);
+        g.DrawLine(pen, 5, 8, 11, 8);
+        g.DrawLine(pen, 5, 11, 11, 11);
     }
 
+    // 削除 (× 印)
     private void DrawDeleteIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        using var bodyBrush = new SolidBrush(Color.FromArgb(170, 175, 180));
-        g.FillRectangle(bodyBrush, 4, 5, 8, 10);
-        g.DrawLine(pen, 4, 5, 4, 15);
-        g.DrawLine(pen, 12, 5, 12, 15);
-        g.DrawLine(pen, 4, 15, 12, 15);
-        using var lidBrush = new SolidBrush(Color.FromArgb(130, 135, 140));
-        g.FillRectangle(lidBrush, 3, 3, 10, 3);
-        g.DrawRectangle(pen, 3, 3, 10, 3);
-        g.DrawArc(pen, 6, 1, 4, 3, 180, 180);
+        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        g.DrawLine(pen, 3, 3, 13, 13);
+        g.DrawLine(pen, 13, 3, 3, 13);
     }
 
+    // Googleで検索 (Googleロゴ)
     private void DrawSearchIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(60, 60, 60), 1f);
-        using var lensBrush = new SolidBrush(Color.FromArgb(160, 210, 240));
-        g.FillEllipse(lensBrush, 2, 2, 9, 9);
-        g.DrawEllipse(pen, 2, 2, 9, 9);
-        using var handlePen = new Pen(Color.FromArgb(220, 150, 50), 2.5f);
-        g.DrawLine(handlePen, 10, 10, 14, 14);
+        using var penB = new Pen(Color.FromArgb(66, 133, 244), 1.8f);
+        using var penR = new Pen(Color.FromArgb(234, 67, 53), 1.8f);
+        using var penY = new Pen(Color.FromArgb(251, 188, 5), 1.8f);
+        using var penG = new Pen(Color.FromArgb(52, 168, 83), 1.8f);
+        var rect = new Rectangle(1, 1, 13, 13);
+        g.DrawArc(penB, rect, 300, 75);
+        g.DrawArc(penR, rect, 225, 75);
+        g.DrawArc(penY, rect, 150, 75);
+        g.DrawArc(penG, rect, 75, 75);
+        g.DrawLine(penB, 8, 7, 14, 7);
     }
+
 
     private void MainForm_Load(object? sender, EventArgs e)
     {

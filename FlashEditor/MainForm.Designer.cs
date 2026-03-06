@@ -38,20 +38,21 @@ partial class MainForm
         // 
         // toolStrip1
         // 
+        // ボタンの論理的グルーピング: ドキュメント操作 → 履歴 → 編集 → 検索 → 設定
         this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
         this.tsbNewMemo,
+        this.tsbTopMost,
         this.toolStripSeparator0,
         this.tsbUndo,
         this.tsbRedo,
-        this.toolStripSeparator2,
+        this.toolStripSeparator1,
         this.tsbCut,
         this.tsbCopy,
         this.tsbPaste,
         this.tsbDelete,
-        this.toolStripSeparator3,
-        this.tsbTopMost,
-        this.toolStripSeparator1,
+        this.toolStripSeparator2,
         this.tsbGoogleSearch,
+        this.toolStripSeparator3,
         this.tsbSettings});
         this.toolStrip1.Location = new System.Drawing.Point(0, 0);
         this.toolStrip1.Name = "toolStrip1";

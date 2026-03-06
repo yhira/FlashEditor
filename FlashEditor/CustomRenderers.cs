@@ -6,6 +6,7 @@ namespace FlashEditor;
 
 public class CustomToolStripRenderer : ToolStripProfessionalRenderer
 {
+    // アイコン画像の描画をカスタマイズ（無効時は半透明に）
     protected override void OnRenderItemImage(ToolStripItemImageRenderEventArgs e)
     {
         if (e.Item.Enabled)
@@ -16,10 +17,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
         {
             if (e.Image == null) return;
 
-            // 半透明かつ彩度を少し落とした描画を行う
-            // 無効時はデフォルトだと完全グレーになるが、ここでは彩度50% + 透明度50%程度にする
-
-            // 彩度は落とさず (100%)、透過度を60% (0.6) にする
+            // 無効時は透過度60%で描画
             var matrix = new ColorMatrix();
             matrix.Matrix00 = 1.0f;
             matrix.Matrix11 = 1.0f;
@@ -29,16 +27,15 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
             using var attributes = new ImageAttributes();
             attributes.SetColorMatrix(matrix);
 
-            // 描画
             e.Graphics.DrawImage(e.Image, e.ImageRectangle, 0, 0, e.Image.Width, e.Image.Height, GraphicsUnit.Pixel, attributes);
         }
     }
 
+    // チェック済みボタン（常に最前面ON）のハイライト背景を描画
     protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
     {
         var button = e.Item as ToolStripButton;
         
-        // ボタンがチェック済み（常に最前面が有効）の場合、ホバー時と同様の背景を描画
         if (button != null && button.Checked)
         {
             var rect = new Rectangle(0, 0, button.Width, button.Height);
@@ -57,6 +54,55 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
         else
         {
             base.OnRenderButtonBackground(e);
+        }
+    }
+
+    // ToolStrip背景をフラットに描画（ダークテーマ対応）
+    protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        
+        if (isDark)
+        {
+            // ダークテーマ: フラットな背景
+            using var brush = new SolidBrush(Color.FromArgb(45, 45, 48));
+            e.Graphics.FillRectangle(brush, e.AffectedBounds);
+        }
+        else
+        {
+            // ライトテーマ: フラットな背景
+            using var brush = new SolidBrush(SystemColors.Control);
+            e.Graphics.FillRectangle(brush, e.AffectedBounds);
+        }
+    }
+
+    // ToolStripの下部にエディターとの区切り線を描画
+    protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        
+        // 下辺のみに区切り線を描画
+        Color borderColor = isDark ? Color.FromArgb(63, 63, 70) : Color.FromArgb(204, 206, 219);
+        using var pen = new Pen(borderColor);
+        e.Graphics.DrawLine(pen, 0, e.AffectedBounds.Bottom - 1, e.AffectedBounds.Right, e.AffectedBounds.Bottom - 1);
+    }
+
+    // セパレーターをテーマに合った色で描画
+    protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        
+        if (e.Vertical)
+        {
+            // 縦セパレーター
+            Color sepColor = isDark ? Color.FromArgb(63, 63, 70) : Color.FromArgb(190, 195, 200);
+            int x = e.Item.Width / 2;
+            using var pen = new Pen(sepColor);
+            e.Graphics.DrawLine(pen, x, 4, x, e.Item.Height - 4);
+        }
+        else
+        {
+            base.OnRenderSeparator(e);
         }
     }
 }
