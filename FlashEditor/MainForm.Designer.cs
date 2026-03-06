@@ -80,6 +80,7 @@ partial class MainForm
         this.tsbTopMost.Name = "tsbTopMost";
         this.tsbTopMost.Size = new System.Drawing.Size(23, 22);
         this.tsbTopMost.Text = "常に最前面";
+        this.tsbTopMost.ToolTipText = "常に最前面";
         // 
         // toolStripSeparator1
         // 
@@ -93,6 +94,7 @@ partial class MainForm
         this.tsbUndo.Name = "tsbUndo";
         this.tsbUndo.Size = new System.Drawing.Size(23, 22);
         this.tsbUndo.Text = "元に戻す";
+        this.tsbUndo.ToolTipText = "元に戻す (Ctrl+Z)";
         // 
         // tsbRedo
         // 
@@ -101,6 +103,7 @@ partial class MainForm
         this.tsbRedo.Name = "tsbRedo";
         this.tsbRedo.Size = new System.Drawing.Size(23, 22);
         this.tsbRedo.Text = "やり直し";
+        this.tsbRedo.ToolTipText = "やり直し (Ctrl+Y)";
         // 
         // toolStripSeparator2
         // 
@@ -114,6 +117,7 @@ partial class MainForm
         this.tsbCut.Name = "tsbCut";
         this.tsbCut.Size = new System.Drawing.Size(23, 22);
         this.tsbCut.Text = "切り取り";
+        this.tsbCut.ToolTipText = "切り取り (Ctrl+X)";
         // 
         // tsbCopy
         // 
@@ -122,6 +126,7 @@ partial class MainForm
         this.tsbCopy.Name = "tsbCopy";
         this.tsbCopy.Size = new System.Drawing.Size(23, 22);
         this.tsbCopy.Text = "コピー";
+        this.tsbCopy.ToolTipText = "コピー (Ctrl+C)";
         // 
         // tsbPaste
         // 
@@ -130,6 +135,7 @@ partial class MainForm
         this.tsbPaste.Name = "tsbPaste";
         this.tsbPaste.Size = new System.Drawing.Size(23, 22);
         this.tsbPaste.Text = "貼り付け";
+        this.tsbPaste.ToolTipText = "貼り付け (Ctrl+V)";
         // 
         // tsbDelete
         // 
@@ -138,6 +144,7 @@ partial class MainForm
         this.tsbDelete.Name = "tsbDelete";
         this.tsbDelete.Size = new System.Drawing.Size(23, 22);
         this.tsbDelete.Text = "削除";
+        this.tsbDelete.ToolTipText = "削除 (Delete)";
         // 
         // toolStripSeparator3
         // 
@@ -151,6 +158,7 @@ partial class MainForm
         this.tsbGoogleSearch.Name = "tsbGoogleSearch";
         this.tsbGoogleSearch.Size = new System.Drawing.Size(23, 22);
         this.tsbGoogleSearch.Text = "Googleで検索";
+        this.tsbGoogleSearch.ToolTipText = "Googleで検索";
         // 
         // tsbSettings
         // 
@@ -160,6 +168,7 @@ partial class MainForm
         this.tsbSettings.Name = "tsbSettings";
         this.tsbSettings.Size = new System.Drawing.Size(23, 22);
         this.tsbSettings.Text = "設定";
+        this.tsbSettings.ToolTipText = "設定";
         // 
         // txtMain
         // 
