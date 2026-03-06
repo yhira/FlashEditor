@@ -7,20 +7,16 @@ namespace FlashEditor;
 public partial class SettingsDialog : Form
 {
     public Font CurrentFont { get; private set; }
-    public bool IsTopMost { get; private set; }
 
-    public SettingsDialog(Font currentFont, bool isTopMost)
+    public SettingsDialog(Font currentFont)
     {
         InitializeComponent();
         CurrentFont = currentFont;
-        IsTopMost = isTopMost;
 
         // 初期値反映
         lblFontPreview.Font = CurrentFont;
         lblFontPreview.Text = $"{CurrentFont.Name}, {CurrentFont.Size}pt";
-        chkTopMost.Checked = IsTopMost;
         
-        this.TopMost = IsTopMost;
         ThemeManager.ApplyTheme(this, ThemeManager.CurrentTheme);
     }
 
@@ -38,7 +34,6 @@ public partial class SettingsDialog : Form
 
     private void btnOK_Click(object sender, EventArgs e)
     {
-        IsTopMost = chkTopMost.Checked;
         this.DialogResult = DialogResult.OK;
         this.Close();
     }

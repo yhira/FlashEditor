@@ -33,4 +33,30 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
             e.Graphics.DrawImage(e.Image, e.ImageRectangle, 0, 0, e.Image.Width, e.Image.Height, GraphicsUnit.Pixel, attributes);
         }
     }
+
+    protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
+    {
+        var button = e.Item as ToolStripButton;
+        
+        // ボタンがチェック済み（常に最前面が有効）の場合、ホバー時と同様の背景を描画
+        if (button != null && button.Checked)
+        {
+            var rect = new Rectangle(0, 0, button.Width, button.Height);
+            
+            // テーマに基づいたハイライト色の選択
+            bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+            Color hoverColor = isDark ? Color.FromArgb(80, 80, 80) : Color.FromArgb(200, 220, 240);
+            
+            using var brush = new SolidBrush(hoverColor);
+            e.Graphics.FillRectangle(brush, rect);
+            
+            // 枠線も薄く描画
+            using var pen = new Pen(isDark ? Color.FromArgb(100, 100, 100) : Color.FromArgb(150, 180, 210));
+            e.Graphics.DrawRectangle(pen, 0, 0, rect.Width - 1, rect.Height - 1);
+        }
+        else
+        {
+            base.OnRenderButtonBackground(e);
+        }
+    }
 }

@@ -547,6 +547,11 @@ public partial class MainForm : Form
         txtMain.Font = _appData.Config.GetFont();
         this.TopMost = _appData.Config.IsTopMost;
         tsbTopMost.Checked = this.TopMost;
+
+        // 保存された最前面表示設定に応じたアイコンの傾きを適用
+        bool isDark = (ThemeManager.GetSystemTheme() == ThemeManager.ThemeMode.Dark);
+        Color outline = isDark ? Color.FromArgb(200, 200, 200) : Color.FromArgb(60, 60, 60);
+        GeneratePinIcon(outline);
     }
 
     private void TsbNewMemo_Click(object? sender, EventArgs e)
@@ -591,11 +596,10 @@ public partial class MainForm : Form
 
     private void TsbSettings_Click(object? sender, EventArgs e)
     {
-        using var dlg = new SettingsDialog(txtMain.Font, this.TopMost);
+        using var dlg = new SettingsDialog(txtMain.Font);
         if (dlg.ShowDialog(this) == DialogResult.OK)
         {
             _appData.Config.SetFont(dlg.CurrentFont);
-            _appData.Config.IsTopMost = dlg.IsTopMost;
             ApplySettings();
         }
     }
