@@ -101,3 +101,11 @@ content_list.txt
 content_list_bare.txt
 *.user
 
+# .NET Build output / Debug folders
+bin/
+obj/
+Debug/
+Release/
+*.dll
+*.exe
+*.pdb
