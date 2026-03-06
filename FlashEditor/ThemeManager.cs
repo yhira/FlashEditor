@@ -11,6 +11,9 @@ public static class ThemeManager
     [DllImport("dwmapi.dll")]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
 
+    [DllImport("uxtheme.dll", ExactSpelling = true, CharSet = CharSet.Unicode)]
+    private static extern int SetWindowTheme(IntPtr hWnd, string pszSubAppName, string? pszSubIdList);
+
     private const int DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1 = 19;
     private const int DWMWA_USE_IMMERSIVE_DARK_MODE = 20;
 
@@ -114,13 +117,32 @@ public static class ThemeManager
             {
                 cmb.BackColor = Color.FromArgb(50, 50, 50);
                 cmb.ForeColor = Color.WhiteSmoke;
-                cmb.FlatStyle = FlatStyle.Flat;
+                // FlatStyleがFlatだとWinFormsが独自描画してしまいSetWindowThemeが効かないためStandardにする
+                cmb.FlatStyle = FlatStyle.Standard;
+                
+                // コントロールのハンドルが作成されていることを確認してDWM属性とテーマを適用
+                if (!cmb.IsHandleCreated)
+                {
+                    _ = cmb.Handle; // 強制的にハンドルを作成
+                }
+                int useDarkModeInt = 1;
+                DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkModeInt, sizeof(int));
+                DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkModeInt, sizeof(int));
+                SetWindowTheme(cmb.Handle, "DarkMode_CFD", null);
             }
             else
             {
                 cmb.BackColor = SystemColors.Window;
                 cmb.ForeColor = SystemColors.WindowText;
                 cmb.FlatStyle = FlatStyle.Standard;
+
+                if (cmb.IsHandleCreated)
+                {
+                    int useDarkModeInt = 0;
+                    DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkModeInt, sizeof(int));
+                    DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkModeInt, sizeof(int));
+                    SetWindowTheme(cmb.Handle, "", null); // テーマ属性をリセット
+                }
             }
         }
         // CheckBox, Label etc automatically inherit Form's ForeColor usually, unless explicitly set
