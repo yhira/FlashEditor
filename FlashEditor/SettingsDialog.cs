@@ -9,32 +9,61 @@ public partial class SettingsDialog : Form
     public Font CurrentFont { get; private set; }
     public ThemeSetting CurrentTheme { get; private set; }
     public ToolButtonSizeSetting CurrentToolButtonSize { get; private set; }
+    public string CurrentLanguage { get; private set; }
 
-    public SettingsDialog(Font currentFont, ThemeSetting currentTheme, ToolButtonSizeSetting currentToolButtonSize)
+    public SettingsDialog(Font currentFont, ThemeSetting currentTheme, ToolButtonSizeSetting currentToolButtonSize, string currentLanguage)
     {
         InitializeComponent();
         CurrentFont = currentFont;
         CurrentTheme = currentTheme;
         CurrentToolButtonSize = currentToolButtonSize;
+        CurrentLanguage = currentLanguage;
+
+        // UIテキストのローカライズ適用
+        this.Text = LocalizationManager.GetString("Settings_Title");
+        lblFont.Text = LocalizationManager.GetString("Settings_Font");
+        btnChangeFont.Text = LocalizationManager.GetString("Settings_ChangeFont");
+        lblTheme.Text = LocalizationManager.GetString("Settings_Theme");
+        lblToolButtonSize.Text = LocalizationManager.GetString("Settings_ToolButtonSize");
+        lblLanguage.Text = LocalizationManager.GetString("Settings_Language");
+        btnOK.Text = LocalizationManager.GetString("Button_OK");
+        btnCancel.Text = LocalizationManager.GetString("Button_Cancel");
 
         // 初期値反映
         UpdateFontPreview();
 
         // テーマ選択肢の設定
-        cmbTheme.Items.Add("システム設定に従う");
-        cmbTheme.Items.Add("ライト");
-        cmbTheme.Items.Add("ダーク");
+        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_System"));
+        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_Light"));
+        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_Dark"));
         cmbTheme.SelectedIndex = (int)CurrentTheme;
         // ComboBox のオーナードロー描画イベントを登録
         cmbTheme.DrawItem += CmbOwnerDraw_DrawItem;
 
         // ツールボタンサイズ選択肢の設定
-        cmbToolButtonSize.Items.Add("小 (32×32)");
-        cmbToolButtonSize.Items.Add("標準 (40×40)");
-        cmbToolButtonSize.Items.Add("大 (48×48)");
+        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Small"));
+        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Medium"));
+        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Large"));
         cmbToolButtonSize.SelectedIndex = (int)CurrentToolButtonSize;
         // ComboBox のオーナードロー描画イベントを登録（テーマと共通）
         cmbToolButtonSize.DrawItem += CmbOwnerDraw_DrawItem;
+
+        // 言語設定
+        int selectedLangIndex = 0;
+        for (int i = 0; i < LocalizationManager.AvailableLanguages.Count; i++)
+        {
+            var langInfo = LocalizationManager.AvailableLanguages[i];
+            cmbLanguage.Items.Add(langInfo);
+            if (langInfo.Code == CurrentLanguage)
+            {
+                selectedLangIndex = i;
+            }
+        }
+        if (cmbLanguage.Items.Count > 0)
+        {
+            cmbLanguage.SelectedIndex = selectedLangIndex;
+        }
+        cmbLanguage.DrawItem += CmbOwnerDraw_DrawItem;
 
         ThemeManager.ApplyTheme(this, ThemeManager.Resolve(CurrentTheme));
     }
@@ -91,6 +120,10 @@ public partial class SettingsDialog : Form
     {
         CurrentTheme = (ThemeSetting)cmbTheme.SelectedIndex;
         CurrentToolButtonSize = (ToolButtonSizeSetting)cmbToolButtonSize.SelectedIndex;
+        if (cmbLanguage.SelectedItem is LocalizationManager.LanguageInfo langInfo)
+        {
+            CurrentLanguage = langInfo.Code;
+        }
         this.DialogResult = DialogResult.OK;
         this.Close();
     }

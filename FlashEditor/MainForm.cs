@@ -85,18 +85,8 @@ public partial class MainForm : Form
         // テーマ適用 (初期化時にシステム設定を見る)
         ApplyTheme(ThemeManager.GetSystemTheme());
 
-        // コンテキストメニュー生成 (アイコン付き)
-        var contextMenu = new ContextMenuStrip();
-        ((ToolStripMenuItem)contextMenu.Items.Add("切り取り", CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
-        ((ToolStripMenuItem)contextMenu.Items.Add("コピー", CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
-        ((ToolStripMenuItem)contextMenu.Items.Add("貼り付け", CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
-        ((ToolStripMenuItem)contextMenu.Items.Add("削除", CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeys = Keys.Delete;
-        contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add("Googleで検索", CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
-        contextMenu.Items.Add(new ToolStripSeparator());
-        ((ToolStripMenuItem)contextMenu.Items.Add("すべて選択", null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
-        
-        txtMain.ContextMenuStrip = contextMenu;
+        // コンテキストメニューの作成と適用
+        RebuildContextMenu();
 
         // イベントハンドラ設定
         this.Load += MainForm_Load;
@@ -136,6 +126,59 @@ public partial class MainForm : Form
 
         // フォームの最小サイズを設定（横600px × 縦300px）
         this.MinimumSize = new Size(600, 300);
+    }
+
+    // コンテキストメニューを再構築する（言語変更時などにも呼ぶ）
+    private void RebuildContextMenu()
+    {
+        var contextMenu = new ContextMenuStrip();
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Cut"), CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Copy"), CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Paste"), CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Delete"), CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeys = Keys.Delete;
+        contextMenu.Items.Add(new ToolStripSeparator());
+        contextMenu.Items.Add(LocalizationManager.GetString("Menu_GoogleSearch"), CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
+        contextMenu.Items.Add(new ToolStripSeparator());
+        // すべて選択は標準のままとするか、辞書にない場合はフォールバック
+        ((ToolStripMenuItem)contextMenu.Items.Add("Select All / すべて選択", null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
+        
+        txtMain.ContextMenuStrip = contextMenu;
+    }
+
+    // UIのテキストを現在の言語に更新する
+    private void ApplyLanguage()
+    {
+        tsbNewMemo.Text = LocalizationManager.GetString("Menu_NewMemo");
+        tsbNewMemo.ToolTipText = LocalizationManager.GetString("Menu_NewMemo");
+
+        tsbTopMost.Text = LocalizationManager.GetString("Menu_TopMost");
+        tsbTopMost.ToolTipText = LocalizationManager.GetString("Menu_TopMost");
+
+        tsbUndo.Text = LocalizationManager.GetString("Menu_Undo");
+        tsbUndo.ToolTipText = LocalizationManager.GetString("Menu_Undo") + " (Ctrl+Z)";
+
+        tsbRedo.Text = LocalizationManager.GetString("Menu_Redo");
+        tsbRedo.ToolTipText = LocalizationManager.GetString("Menu_Redo") + " (Ctrl+Y)";
+
+        tsbCut.Text = LocalizationManager.GetString("Menu_Cut");
+        tsbCut.ToolTipText = LocalizationManager.GetString("Menu_Cut") + " (Ctrl+X)";
+
+        tsbCopy.Text = LocalizationManager.GetString("Menu_Copy");
+        tsbCopy.ToolTipText = LocalizationManager.GetString("Menu_Copy") + " (Ctrl+C)";
+
+        tsbPaste.Text = LocalizationManager.GetString("Menu_Paste");
+        tsbPaste.ToolTipText = LocalizationManager.GetString("Menu_Paste") + " (Ctrl+V)";
+
+        tsbDelete.Text = LocalizationManager.GetString("Menu_Delete");
+        tsbDelete.ToolTipText = LocalizationManager.GetString("Menu_Delete") + " (Delete)";
+
+        tsbGoogleSearch.Text = LocalizationManager.GetString("Menu_GoogleSearch");
+        tsbGoogleSearch.ToolTipText = LocalizationManager.GetString("Menu_GoogleSearch");
+
+        tsbSettings.Text = LocalizationManager.GetString("Menu_Settings");
+        tsbSettings.ToolTipText = LocalizationManager.GetString("Menu_Settings");
+
+        RebuildContextMenu();
     }
 
     // テーマを適用する。引数に null が渡された場合は設定ファイルから解決する。
@@ -467,6 +510,10 @@ public partial class MainForm : Form
     private void MainForm_Load(object? sender, EventArgs e)
     {
         _appData.Load();
+        
+        // 言語データを読み込んでUIに適用
+        LocalizationManager.LoadLanguage(_appData.Config.Language);
+        ApplyLanguage();
 
         // ウィンドウ復元
         // 画面外に行かないように簡易チェック
@@ -600,13 +647,22 @@ public partial class MainForm : Form
 
     private void TsbSettings_Click(object? sender, EventArgs e)
     {
-        // 設定ダイアログを表示 (現在のフォント・テーマ・ツールボタンサイズを渡す)
-        using var dlg = new SettingsDialog(txtMain.Font, _appData.Config.Theme, _appData.Config.ToolButtonSize);
+        // 設定ダイアログを表示 (現在のフォント・テーマ・ツールボタンサイズ・言語を渡す)
+        using var dlg = new SettingsDialog(txtMain.Font, _appData.Config.Theme, _appData.Config.ToolButtonSize, _appData.Config.Language);
         if (dlg.ShowDialog(this) == DialogResult.OK)
         {
             _appData.Config.SetFont(dlg.CurrentFont);
             _appData.Config.Theme = dlg.CurrentTheme;
             _appData.Config.ToolButtonSize = dlg.CurrentToolButtonSize;
+            
+            // 言語が変更された場合は再読み込みと適用を行う
+            if (_appData.Config.Language != dlg.CurrentLanguage)
+            {
+                _appData.Config.Language = dlg.CurrentLanguage;
+                LocalizationManager.LoadLanguage(_appData.Config.Language);
+                ApplyLanguage(); // メインフォームのUI言語を更新
+            }
+
             // 変更を即座に反映
             ApplySettings();
         }

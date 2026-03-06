@@ -77,7 +77,27 @@ public class AppConfig
     public ThemeSetting Theme { get; set; } = ThemeSetting.System;
     // ツールボタンサイズ設定
     public ToolButtonSizeSetting ToolButtonSize { get; set; } = ToolButtonSizeSetting.Medium;
+    
+    // 使用する言語 (デフォルトはシステムの言語から判定)
+    public string Language { get; set; } = GetSystemLanguageCode();
+    
     public string FontName { get; set; } = "Meiryo";
+
+    // システムの言語(CurrentUICulture)から適切な言語コードを返す
+    private static string GetSystemLanguageCode()
+    {
+        var culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+        if (culture.StartsWith("ja")) return "ja";
+        if (culture.StartsWith("zh-CN") || culture.StartsWith("zh-Hans")) return "zh-CN";
+        if (culture.StartsWith("zh-TW") || culture.StartsWith("zh-Hant")) return "zh-TW";
+        if (culture.StartsWith("ko")) return "ko";
+        if (culture.StartsWith("es")) return "es";
+        if (culture.StartsWith("pt")) return "pt";
+        if (culture.StartsWith("it")) return "it";
+        if (culture.StartsWith("de")) return "de";
+        if (culture.StartsWith("fr")) return "fr";
+        return "en"; // 未知の言語は英語にフォールバック
+    }
     public float FontSize { get; set; } = 18.0f;
     // フォントスタイル (Bold/Italic 等を保存)
     public int FontStyleValue { get; set; } = (int)FontStyle.Regular;
