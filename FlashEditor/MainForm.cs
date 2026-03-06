@@ -12,23 +12,32 @@ public partial class MainForm : Form
     private readonly Timer _snapshotTimer = new();
     private bool _isUndoRedoAction = false;
 
+    // Win32 API: RichTextBox 内部のテキスト描画領域を設定するために使用
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref RECT lParam);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left, Top, Right, Bottom; }
 
+    // テキスト描画領域の設定用メッセージ定数
     private const int EM_SETRECT = 0xB3;
-    private const int EditorPadding = 8;
+    // エディター内側の余白（ピクセル）
+    private const int EditorMargin = 8;
 
-    private void UpdateEditorPadding()
+    /// <summary>
+    /// RichTextBox 内部のテキスト描画領域にマージンを設定する
+    /// </summary>
+    private void UpdateEditorMargin()
     {
+        // ハンドルが作成されていない場合はスキップ
+        if (!txtMain.IsHandleCreated) return;
+
         var rect = new RECT
         {
-            Left   = EditorPadding,
-            Top    = EditorPadding,
-            Right  = txtMain.ClientSize.Width  - EditorPadding,
-            Bottom = txtMain.ClientSize.Height - EditorPadding,
+            Left   = EditorMargin,
+            Top    = EditorMargin,
+            Right  = txtMain.ClientSize.Width  - EditorMargin,
+            Bottom = txtMain.ClientSize.Height - EditorMargin,
         };
         SendMessage(txtMain.Handle, EM_SETRECT, IntPtr.Zero, ref rect);
     }
@@ -37,6 +46,9 @@ public partial class MainForm : Form
     {
         InitializeComponent();
         
+        // エディターの枠線を消してマージン領域をシームレスにする
+        txtMain.BorderStyle = BorderStyle.None;
+
         // アイコン生成
         toolStrip1.ImageScalingSize = new Size(32, 32);
         toolStrip1.Renderer = new CustomToolStripRenderer(); // カスタムレンダラー適用 (無効時の表示変更)
@@ -77,8 +89,8 @@ public partial class MainForm : Form
         txtMain.LinkClicked += TxtMain_LinkClicked;
         // 選択状態が変わったらボタンの有効/無効を更新
         txtMain.SelectionChanged += (s, e) => UpdateSelectionButtons();
-        // リサイズ時にパディングを再適用
-        txtMain.SizeChanged += (s, e) => UpdateEditorPadding();
+        // リサイズ時にマージンを再適用
+        txtMain.SizeChanged += (s, e) => UpdateEditorMargin();
         // Ctrl+Vの装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
         txtMain.KeyDown += TxtMain_KeyDown;
 
@@ -483,10 +495,10 @@ public partial class MainForm : Form
 
         // テキスト復元
         txtMain.Text = _appData.MemoContent;
-        // 描画完了後にキャレットを確実に先頭へ移動し、フォーカスを当てて点滅させる
+        // 描画完了後にマージン設定とキャレットを確実に先頭へ移動し、フォーカスを当てて点滅させる
         this.BeginInvoke(new Action(() =>
         {
-            UpdateEditorPadding();
+            UpdateEditorMargin();
             txtMain.Select(0, 0);
             txtMain.ScrollToCaret();
             txtMain.Focus();
