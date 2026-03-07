@@ -140,8 +140,8 @@ public partial class MainForm : Form
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add(LocalizationManager.GetString("Menu_GoogleSearch"), CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
         contextMenu.Items.Add(new ToolStripSeparator());
-        // すべて選択は標準のままとするか、辞書にない場合はフォールバック
-        ((ToolStripMenuItem)contextMenu.Items.Add("Select All / すべて選択", null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
+        // すべて選択（ローカライズ対応）
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_SelectAll"), null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
         
         txtMain.ContextMenuStrip = contextMenu;
     }
@@ -627,13 +627,12 @@ public partial class MainForm : Form
 
     private void TsbNewMemo_Click(object? sender, EventArgs e)
     {
-        // 日本語の曜日名
-        string[] dayNames = { "日", "月", "火", "水", "木", "金", "土" };
         var now = DateTime.Now;
-        // 曜日を日本語で取得
-        string dayOfWeek = dayNames[(int)now.DayOfWeek];
-        // フォーマット: 2026/02/17 火 0:04:41
-        string dateHeader = now.ToString($"yyyy/MM/dd") + $" {dayOfWeek} " + now.ToString("H:mm:ss");
+        // 現在の言語設定に対応する CultureInfo で曜日を各国語表示
+        var culture = new System.Globalization.CultureInfo(LocalizationManager.CurrentLanguage);
+        string dayOfWeek = culture.DateTimeFormat.GetAbbreviatedDayName(now.DayOfWeek);
+        // フォーマット: 2026/02/17 Sat 0:04:41
+        string dateHeader = now.ToString("yyyy/MM/dd") + $" {dayOfWeek} " + now.ToString("H:mm:ss");
         // 40文字の罫線
         string separator = new string('-', 40);
         // 冒頭に挿入するヘッダー (前に空行 + 日付 + 罫線 + 空行)

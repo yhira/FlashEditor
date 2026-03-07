@@ -8,11 +8,12 @@ public class AppConfigTests
     // ===== デフォルト値テスト =====
 
     [Fact]
-    public void デフォルトのフォント名はMeiryo()
+    public void デフォルトのフォント名は言語に応じて自動選択される()
     {
         var config = new AppConfig();
 
-        config.FontName.Should().Be("Meiryo");
+        // 日本語環境では Yu Gothic UI が選択される
+        config.FontName.Should().Be("Yu Gothic UI");
     }
 
     [Fact]

@@ -17,6 +17,26 @@ public class AppData
 
     public string MemoContent { get; set; } = "";
 
+    // エラーをログファイルに記録し、ダイアログで表示する
+    internal static void ReportError(string context, Exception ex)
+    {
+        // ログファイルに記録
+        try
+        {
+            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+            string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {context}: {ex.Message}\n";
+            File.AppendAllText(logPath, entry);
+        }
+        catch { /* ログ書き込み自体の失敗は無視 */ }
+
+        // ユーザーにダイアログで通知
+        MessageBox.Show(
+            $"{context}\n\n{ex.Message}",
+            "FlashEditor - エラー",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning);
+    }
+
     public void Load()
     {
         // Config読み込み
@@ -27,7 +47,7 @@ public class AppData
                 var json = File.ReadAllText(ConfigFile);
                 Config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
             }
-            catch { /* 無視してデフォルト使用 */ }
+            catch (Exception ex) { ReportError("設定ファイルの読み込みに失敗しました", ex); }
         }
 
         // Memo読み込み
@@ -37,7 +57,7 @@ public class AppData
             {
                 MemoContent = File.ReadAllText(MemoFile, Encoding.UTF8);
             }
-            catch { /* 無視 */ }
+            catch (Exception ex) { ReportError("メモファイルの読み込みに失敗しました", ex); }
         }
 
         // 履歴読み込み
@@ -52,14 +72,14 @@ public class AppData
             var json = JsonSerializer.Serialize(Config);
             File.WriteAllText(ConfigFile, json);
         }
-        catch { }
+        catch (Exception ex) { ReportError("設定ファイルの保存に失敗しました", ex); }
 
         // Memo保存
         try
         {
             File.WriteAllText(MemoFile, MemoContent, Encoding.UTF8);
         }
-        catch { }
+        catch (Exception ex) { ReportError("メモファイルの保存に失敗しました", ex); }
 
         // 履歴保存
         History.Save(HistoryFile);
@@ -81,7 +101,22 @@ public class AppConfig
     // 使用する言語 (デフォルトはシステムの言語から判定)
     public string Language { get; set; } = GetSystemLanguageCode();
     
-    public string FontName { get; set; } = "Meiryo";
+    // 言語設定に応じたデフォルトフォントを自動選択
+    public string FontName { get; set; } = GetDefaultFontName();
+
+    // 言語コードに応じた最適なデフォルトフォント名を返す
+    private static string GetDefaultFontName()
+    {
+        var lang = GetSystemLanguageCode();
+        return lang switch
+        {
+            "ja"    => "Yu Gothic UI",
+            "zh-CN" => "Microsoft YaHei UI",
+            "zh-TW" => "Microsoft JhengHei UI",
+            "ko"    => "Malgun Gothic",
+            _       => "Segoe UI",
+        };
+    }
 
     // システムの言語(CurrentUICulture)から適切な言語コードを返す
     private static string GetSystemLanguageCode()
@@ -143,7 +178,7 @@ public class AppConfig
 
 public class HistoryManager
 {
-    private const int MaxHistory = 1000;
+    private const int MaxHistory = 200;
     // 最低変化文字数 (この差分未満の変更は記録しない)
     private const int MinChangeThreshold = 10;
     private readonly Stack<string> _undoStack = new();
@@ -231,7 +266,7 @@ public class HistoryManager
                 writer.Write(item);
             }
         }
-        catch { }
+        catch (Exception ex) { AppData.ReportError("履歴データの保存に失敗しました", ex); }
     }
 
     public void Load(string filePath)
@@ -278,6 +313,6 @@ public class HistoryManager
                 _redoStack.Push(redoList[i]);
             }
         }
-        catch { }
+        catch (Exception ex) { AppData.ReportError("履歴データの読み込みに失敗しました", ex); }
     }
 }

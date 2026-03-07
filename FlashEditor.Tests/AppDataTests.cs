@@ -53,7 +53,7 @@ public class AppDataTests : IDisposable
 
         // デフォルト値のまま
         appData.MemoContent.Should().BeEmpty();
-        appData.Config.FontName.Should().Be("Meiryo");
+        appData.Config.FontName.Should().Be("Yu Gothic UI");
     }
 
     // ===== Save/Load テスト =====

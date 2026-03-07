@@ -26,5 +26,6 @@
   "Button_Cancel": "キャンセル",
   "Menu_About": "バージョン情報",
   "About_Title": "バージョン情報",
-  "About_Author": "作者：yhira"
+  "About_Author": "作者：yhira",
+  "Menu_SelectAll": "すべて選択"
 }

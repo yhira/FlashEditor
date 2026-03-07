@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Drawing;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace FlashEditor;
@@ -26,7 +27,9 @@ public partial class AboutDialog : Form
         // 多言語対応のテキストを適用
         this.Text = LocalizationManager.GetString("About_Title") ?? "バージョン情報";
         lblTitle.Text = "Flash Editor";
-        lblVersion.Text = "Version 1.0";
+        // アセンブリからバージョン情報を自動取得
+        var version = Assembly.GetExecutingAssembly().GetName().Version;
+        lblVersion.Text = $"Version {version?.Major}.{version?.Minor}.{version?.Build}";
         lblAuthor.Text = LocalizationManager.GetString("About_Author") ?? "作者：yhira";
         btnOk.Text = LocalizationManager.GetString("Button_OK") ?? "OK";
     }

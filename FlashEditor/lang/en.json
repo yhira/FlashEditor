@@ -26,5 +26,6 @@
   "Button_Cancel": "Cancel",
   "Menu_About": "About",
   "About_Title": "About Flash Editor",
-  "About_Author": "Author: yhira"
+  "About_Author": "Author: yhira",
+  "Menu_SelectAll": "Select All"
 }
