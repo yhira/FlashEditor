@@ -616,6 +616,9 @@ public partial class MainForm : Form
 
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
     {
+        // 自動保存タイマーを停止（Save()との書き込み競合を防止）
+        _autoSaveTimer.Stop();
+
         // 状態保存
         _appData.Config.WindowX = this.Location.X;
         _appData.Config.WindowY = this.Location.Y;
