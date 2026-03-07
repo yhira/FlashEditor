@@ -99,7 +99,7 @@ public static class LocalizationManager
 
     /// <summary>
     /// キーからローカライズされた文字列を取得します。
-    /// 見つからない場合はキー自身を返します（デバッグのため）。
+    /// 見つからない場合は null を返します（?? でフォールバック可能）。
     /// </summary>
     public static string? GetString(string key)
     {

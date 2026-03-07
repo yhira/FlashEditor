@@ -67,12 +67,21 @@ public class AppData
         }
         catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_ConfigSave") ?? "Failed to save config file", ex); }
 
-        // Memo保存
-        try
+        // Memo保存（自動保存との競合時はリトライ）
+        for (int retry = 0; retry < 3; retry++)
         {
-            File.WriteAllText(MemoFile, MemoContent, Encoding.UTF8);
+            try
+            {
+                File.WriteAllText(MemoFile, MemoContent, Encoding.UTF8);
+                break;
+            }
+            catch (IOException) when (retry < 2)
+            {
+                // 自動保存がファイルをロック中の場合、少し待ってリトライ
+                Thread.Sleep(100);
+            }
+            catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_MemoSave") ?? "Failed to save memo file", ex); }
         }
-        catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_MemoSave") ?? "Failed to save memo file", ex); }
     }
 
     // 非同期でメモのみを保存する（クラッシュ耐性向上のためのバックアップ用）
