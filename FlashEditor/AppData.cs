@@ -84,6 +84,30 @@ public class AppData
         // 履歴保存
         History.Save(HistoryFile);
     }
+
+    // 非同期でメモのみを保存する（クラッシュ耐性向上のためのバックアップ用）
+    public async void SaveMemoAsync(string text)
+    {
+        MemoContent = text;
+        try
+        {
+            // 他の保存処理との競合を避けるため FileShare.ReadWrite などを検討するか、単純に再試行
+            using var sourceStream = new FileStream(MemoFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            var bytes = Encoding.UTF8.GetBytes(text);
+            await sourceStream.WriteAsync(bytes, 0, bytes.Length);
+        }
+        catch (Exception ex)
+        {
+            // バックグラウンドでのバックアップ失敗は目障りになるためダイアログではなくログにのみ記録
+            try
+            {
+                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+                string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] メモの自動バックアップに失敗しました: {ex.Message}\n";
+                File.AppendAllText(logPath, entry);
+            }
+            catch { }
+        }
+    }
 }
 
 public enum ThemeSetting { System, Light, Dark }
@@ -243,28 +267,25 @@ public class HistoryManager
         return _redoStack.Pop();
     }
 
+    // JSON化用の中間DTO
+    private class HistoryData
+    {
+        public List<string> UndoList { get; set; } = new();
+        public List<string> RedoList { get; set; } = new();
+    }
+
     public void Save(string filePath)
     {
         try
         {
-            using var fs = new FileStream(filePath, FileMode.Create);
-            using var writer = new BinaryWriter(fs);
-            
-            // Undo Stack
-            writer.Write(_undoStack.Count);
-            // StackはPop順（新しい順）に出るので、読み込み時に逆順にする必要があるが
-            // ここでは単純にリスト化して保存（新しい順）
-            foreach (var item in _undoStack)
+            var data = new HistoryData
             {
-                writer.Write(item);
-            }
-
-            // Redo Stack
-            writer.Write(_redoStack.Count);
-            foreach (var item in _redoStack)
-            {
-                writer.Write(item);
-            }
+                // Stack を List 化すると Top から順に（新しい順に）入る
+                UndoList = _undoStack.ToList(),
+                RedoList = _redoStack.ToList()
+            };
+            var json = JsonSerializer.Serialize(data);
+            File.WriteAllText(filePath, json);
         }
         catch (Exception ex) { AppData.ReportError("履歴データの保存に失敗しました", ex); }
     }
@@ -275,44 +296,38 @@ public class HistoryManager
 
         try
         {
-            using var fs = new FileStream(filePath, FileMode.Open);
-            using var reader = new BinaryReader(fs);
+            var json = File.ReadAllText(filePath);
+            var data = JsonSerializer.Deserialize<HistoryData>(json);
 
             _undoStack.Clear();
             _redoStack.Clear();
 
-            int undoCount = reader.ReadInt32();
-            var undoList = new List<string>();
-            for (int i = 0; i < undoCount; i++)
+            if (data != null)
             {
-                undoList.Add(reader.ReadString());
-            }
-            // 保存時は新しい順なので、Stackに入れるときは古い順（逆順）に入れる必要がある
-            // List[0]が最新。StackにPushするときは、最後に取り出したい順（最新）に入れるのが普通だが
-            // Stackの性質上、最後に入れたものが最初に出る(LIFO)。
-            // 保存: A, B, C (Cが最新) -> Write: C, B, A
-            // 読み込み: C, B, A
-            // そのままPushすると: Stack Bottom [C, B, A] Top となり、Popすると A が出る（最古）。
-            // これは間違い。
-            // 正しくは、Cを取り出したいなら、Stack Top に C が来るべき。
-            // Bottom [A, B, C] Top にするには、A, B, C の順でPushする必要がある。
-            // つまり、読み込んだリスト (C, B, A) を逆順にして (A, B, C) にしてからPushする。
-            for (int i = undoList.Count - 1; i >= 0; i--)
-            {
-                _undoStack.Push(undoList[i]);
-            }
+                // リストは新しい順（Stack の Pop 順）で保存されているため、
+                // Stack の下から上に積み上げるには逆順に Push する必要がある。
+                data.UndoList.Reverse();
+                foreach (var item in data.UndoList)
+                {
+                    _undoStack.Push(item);
+                }
 
-            int redoCount = reader.ReadInt32();
-            var redoList = new List<string>();
-            for (int i = 0; i < redoCount; i++)
-            {
-                redoList.Add(reader.ReadString());
-            }
-            for (int i = redoList.Count - 1; i >= 0; i--)
-            {
-                _redoStack.Push(redoList[i]);
+                data.RedoList.Reverse();
+                foreach (var item in data.RedoList)
+                {
+                    _redoStack.Push(item);
+                }
             }
         }
-        catch (Exception ex) { AppData.ReportError("履歴データの読み込みに失敗しました", ex); }
+        catch (JsonException)
+        {
+            // 古いバイナリ形式の履歴ファイルや破損したJSONの場合はエラーを出さずに破棄
+            _undoStack.Clear();
+            _redoStack.Clear();
+        }
+        catch (Exception ex)
+        {
+            AppData.ReportError("履歴データの読み込みに失敗しました", ex);
+        }
     }
 }
