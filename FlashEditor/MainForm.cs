@@ -179,8 +179,8 @@ public partial class MainForm : Form
         tsbSettings.Text = LocalizationManager.GetString("Menu_Settings");
         tsbSettings.ToolTipText = LocalizationManager.GetString("Menu_Settings");
 
-        tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "バージョン情報";
-        tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "バージョン情報";
+        tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "About";
+        tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "About";
 
         BuildContextMenu();
     }

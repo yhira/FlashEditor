@@ -49,7 +49,7 @@ public static class LocalizationManager
                 }
                 catch (Exception ex)
                 {
-                    AppData.ReportError("言語ファイルの読み込みに失敗しました", ex);
+                    AppData.ReportError("Failed to load language file", ex);
                 }
             }
             
@@ -93,7 +93,7 @@ public static class LocalizationManager
         catch (Exception ex)
         {
             _strings.Clear();
-            AppData.ReportError("言語データの読み込みに失敗しました", ex);
+            AppData.ReportError("Failed to load language data", ex);
         }
     }
 
