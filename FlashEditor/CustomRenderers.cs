@@ -102,7 +102,70 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
         }
         else
         {
-            base.OnRenderSeparator(e);
+            // 横セパレーター（コンテキストメニュー内）
+            Color sepColor = isDark ? Color.FromArgb(63, 63, 70) : Color.FromArgb(215, 215, 215);
+            int y = e.Item.Height / 2;
+            // アイコン領域の右端からセパレーターを描画
+            int leftMargin = e.Item.Owner is ContextMenuStrip ? 28 : 0;
+            using var pen = new Pen(sepColor);
+            e.Graphics.DrawLine(pen, leftMargin, y, e.Item.Width - 2, y);
+        }
+    }
+
+    // コンテキストメニュー項目のホバー背景を描画
+    protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+
+        if (e.Item.Selected && e.Item.Enabled)
+        {
+            // ホバー時のハイライト色
+            Color hoverBg = isDark ? Color.FromArgb(62, 62, 66) : Color.FromArgb(200, 220, 240);
+            var rect = new Rectangle(2, 0, e.Item.Width - 4, e.Item.Height);
+            using var brush = new SolidBrush(hoverBg);
+            e.Graphics.FillRectangle(brush, rect);
+            // ホバー枠線
+            using var pen = new Pen(isDark ? Color.FromArgb(80, 80, 84) : Color.FromArgb(150, 180, 210));
+            e.Graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+        }
+        else
+        {
+            // 通常状態：背景をテーマ色で塗りつぶし
+            Color normalBg = isDark ? Color.FromArgb(43, 43, 43) : SystemColors.Control;
+            using var brush = new SolidBrush(normalBg);
+            e.Graphics.FillRectangle(brush, new Rectangle(Point.Empty, e.Item.Size));
+        }
+    }
+
+    // コンテキストメニュー項目のテキスト色をテーマに応じて変更
+    protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+
+        if (e.Item.Owner is ContextMenuStrip || e.Item.OwnerItem != null)
+        {
+            // コンテキストメニュー内のテキスト色をテーマに応じて設定
+            e.TextColor = e.Item.Enabled
+                ? (isDark ? Color.WhiteSmoke : SystemColors.MenuText)
+                : (isDark ? Color.FromArgb(110, 110, 110) : SystemColors.GrayText);
+        }
+        base.OnRenderItemText(e);
+    }
+
+    // コンテキストメニュー左側のアイコン領域の背景色を変更
+    protected override void OnRenderImageMargin(ToolStripRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+
+        if (isDark)
+        {
+            // ダークテーマ：アイコン領域を少し暗めに
+            using var brush = new SolidBrush(Color.FromArgb(38, 38, 38));
+            e.Graphics.FillRectangle(brush, e.AffectedBounds);
+        }
+        else
+        {
+            base.OnRenderImageMargin(e);
         }
     }
 }

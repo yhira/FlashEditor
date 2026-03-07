@@ -99,12 +99,17 @@ public partial class SettingsDialog : Form
         e.DrawFocusRectangle();
     }
 
+    // 自前で生成したプレビュー用フォントを追跡（親フォームの共有フォントは Dispose しない）
+    private Font? _previewFont;
+
     private void UpdateFontPreview()
     {
-        // 以前のフォントオブジェクトを解放してGDIリソースリークを防止
-        lblFontPreview.Font?.Dispose();
-        lblFontPreview.Font = new Font(CurrentFont.FontFamily, 16f, CurrentFont.Style, GraphicsUnit.Point);
+        // 以前に自前で生成したフォントがあれば解放
+        var oldFont = _previewFont;
+        _previewFont = new Font(CurrentFont.FontFamily, 16f, CurrentFont.Style, GraphicsUnit.Point);
+        lblFontPreview.Font = _previewFont;
         lblFontPreview.Text = $"{CurrentFont.Name}, {CurrentFont.Size}pt";
+        oldFont?.Dispose();
     }
 
     private void btnChangeFont_Click(object sender, EventArgs e)

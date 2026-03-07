@@ -133,6 +133,8 @@ public partial class MainForm : Form
     private void RebuildContextMenu()
     {
         var contextMenu = new ContextMenuStrip();
+        // ToolStrip と同じカスタムレンダラーを適用してダークテーマに対応
+        contextMenu.Renderer = new CustomToolStripRenderer();
         ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Cut"), CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
         ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Copy"), CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
         ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Paste"), CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
