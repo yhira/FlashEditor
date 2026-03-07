@@ -9,12 +9,9 @@ namespace FlashEditor;
 public partial class MainForm : Form
 {
     private readonly AppData _appData = new();
-
     private readonly Timer _tooltipTimer = new();
     private readonly ToolTip _customToolTip = new();
     private ToolStripItem? _hoveredItem;
-
-
     // Win32 API: RichTextBox 内部のテキスト描画領域を設定するために使用
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref RECT lParam);
@@ -114,8 +111,6 @@ public partial class MainForm : Form
         txtMain.SizeChanged += (s, e) => UpdateEditorMargin();
         // Ctrl+Vの装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
         txtMain.KeyDown += TxtMain_KeyDown;
-
-
 
         // システムのテーマ変更を監視するなら WndProc で WM_SETTINGCHANGE をフックする必要があるが
         // 簡易的に今回は起動時のみ、あるいは設定画面での切り替えとする
@@ -775,8 +770,6 @@ public partial class MainForm : Form
         UpdateUndoRedoButtons();
     }
 
-
-
     // RichTextBox内蔵のUndo/Redo状態からボタンの有効無効を更新
     private void UpdateUndoRedoButtons()
     {
@@ -807,8 +800,6 @@ public partial class MainForm : Form
             catch (Exception ex) { AppData.ReportError("リンクを開けませんでした", ex); }
         }
     }
-
-
 
     // 選択中のテキストを削除する
     private void DeleteSelectedText()

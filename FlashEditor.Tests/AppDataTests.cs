@@ -39,7 +39,6 @@ public class AppDataTests : IDisposable
 
         appData.MemoContent.Should().BeEmpty();
         appData.Config.Should().NotBeNull();
-
     }
 
     [Fact]
@@ -138,6 +137,5 @@ public class AppDataTests : IDisposable
         // ファイルが存在することを確認
         File.Exists("config.json").Should().BeTrue();
         File.Exists("memo.txt").Should().BeTrue();
-
     }
 }

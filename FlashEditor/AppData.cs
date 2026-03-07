@@ -147,6 +147,7 @@ public class AppConfig
         if (culture.StartsWith("fr")) return "fr";
         return "en"; // 未知の言語は英語にフォールバック
     }
+
     public float FontSize { get; set; } = 18.0f;
     // フォントスタイル (Bold/Italic 等を保存)
     public int FontStyleValue { get; set; } = (int)FontStyle.Regular;
