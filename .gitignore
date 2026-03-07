@@ -112,3 +112,6 @@ Release/
 
 # Archives
 *.zip
+
+# Claude
+.claude/
