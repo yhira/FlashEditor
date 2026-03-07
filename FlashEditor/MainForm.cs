@@ -412,10 +412,17 @@ public partial class MainForm : Form
 
     // === コンテキストメニュー用アイコン (16x16, モノライン統一) ===
 
+    // コンテキストメニュー用アイコンのテーマ対応色を取得
+    private static Color GetContextMenuIconColor()
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        return isDark ? Color.FromArgb(180, 180, 180) : Color.FromArgb(100, 100, 100);
+    }
+
     // 切り取り (はさみ)
     private void DrawCutIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
         g.DrawEllipse(pen, 1, 9, 4, 4);
         g.DrawEllipse(pen, 10, 9, 4, 4);
         g.DrawLine(pen, 3, 10, 11, 2);
@@ -425,7 +432,7 @@ public partial class MainForm : Form
     // コピー (2枚の四角)
     private void DrawCopyIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
         g.DrawRectangle(pen, 5, 1, 8, 10);
         g.DrawRectangle(pen, 2, 4, 8, 10);
     }
@@ -433,7 +440,7 @@ public partial class MainForm : Form
     // 貼り付け (クリップボード)
     private void DrawPasteIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
         g.DrawRectangle(pen, 2, 3, 11, 12);
         g.DrawRectangle(pen, 5, 1, 5, 3);
         g.DrawLine(pen, 5, 8, 11, 8);
@@ -443,7 +450,7 @@ public partial class MainForm : Form
     // 削除 (× 印)
     private void DrawDeleteIcon(Graphics g)
     {
-        using var pen = new Pen(Color.FromArgb(180, 180, 180), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
         g.DrawLine(pen, 3, 3, 13, 13);
         g.DrawLine(pen, 13, 3, 3, 13);
     }
@@ -588,7 +595,7 @@ public partial class MainForm : Form
                 this.Icon = new Icon(icoPath);
             }
         }
-        catch { }
+        catch (Exception ex) { AppData.ReportError("アイコンファイルの読み込みに失敗しました", ex); }
     }
 
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
@@ -628,8 +635,16 @@ public partial class MainForm : Form
     private void TsbNewMemo_Click(object? sender, EventArgs e)
     {
         var now = DateTime.Now;
-        // 現在の言語設定に対応する CultureInfo で曜日を各国語表示
-        var culture = new System.Globalization.CultureInfo(LocalizationManager.CurrentLanguage);
+        // 未知の言語コードでも安全にフォールバック
+        System.Globalization.CultureInfo culture;
+        try
+        {
+            culture = new System.Globalization.CultureInfo(LocalizationManager.CurrentLanguage);
+        }
+        catch
+        {
+            culture = System.Globalization.CultureInfo.InvariantCulture;
+        }
         string dayOfWeek = culture.DateTimeFormat.GetAbbreviatedDayName(now.DayOfWeek);
         // フォーマット: 2026/02/17 Sat 0:04:41
         string dateHeader = now.ToString("yyyy/MM/dd") + $" {dayOfWeek} " + now.ToString("H:mm:ss");
@@ -732,7 +747,7 @@ public partial class MainForm : Form
                 string url = "https://www.google.com/search?q=" + Uri.EscapeDataString(text);
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
-            catch { }
+            catch (Exception ex) { AppData.ReportError("ブラウザの起動に失敗しました", ex); }
         }
     }
 
@@ -768,7 +783,7 @@ public partial class MainForm : Form
             {
                 Process.Start(new ProcessStartInfo(e.LinkText) { UseShellExecute = true });
             }
-            catch { }
+            catch (Exception ex) { AppData.ReportError("リンクを開けませんでした", ex); }
         }
     }
 

@@ -47,9 +47,9 @@ public static class LocalizationManager
                         AvailableLanguages.Add(new LanguageInfo { Code = code, DisplayName = langName });
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // 無視
+                    AppData.ReportError("言語ファイルの読み込みに失敗しました", ex);
                 }
             }
             
@@ -90,9 +90,10 @@ public static class LocalizationManager
                 _strings.Clear();
             }
         }
-        catch
+        catch (Exception ex)
         {
             _strings.Clear();
+            AppData.ReportError("言語データの読み込みに失敗しました", ex);
         }
     }
 

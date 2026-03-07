@@ -101,6 +101,8 @@ public partial class SettingsDialog : Form
 
     private void UpdateFontPreview()
     {
+        // 以前のフォントオブジェクトを解放してGDIリソースリークを防止
+        lblFontPreview.Font?.Dispose();
         lblFontPreview.Font = new Font(CurrentFont.FontFamily, 16f, CurrentFont.Style, GraphicsUnit.Point);
         lblFontPreview.Text = $"{CurrentFont.Name}, {CurrentFont.Size}pt";
     }
