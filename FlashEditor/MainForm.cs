@@ -85,8 +85,8 @@ public partial class MainForm : Form
         // テーマ適用 (初期化時にシステム設定を見る)
         ApplyTheme(ThemeManager.GetSystemTheme());
 
-        // コンテキストメニューの作成と適用
-        RebuildContextMenu();
+        // コンテキストメニュー構築
+        BuildContextMenu();
 
         // イベントハンドラ設定
         this.Load += MainForm_Load;
@@ -130,7 +130,7 @@ public partial class MainForm : Form
     }
 
     // コンテキストメニューを再構築する（言語変更時などにも呼ぶ）
-    private void RebuildContextMenu()
+    private void BuildContextMenu()
     {
         var contextMenu = new ContextMenuStrip();
         // ToolStrip と同じカスタムレンダラーを適用してダークテーマに対応
@@ -184,7 +184,7 @@ public partial class MainForm : Form
         tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "バージョン情報";
         tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "バージョン情報";
 
-        RebuildContextMenu();
+        BuildContextMenu();
     }
 
     // テーマを適用する。引数に null が渡された場合は設定ファイルから解決する。
@@ -210,6 +210,18 @@ public partial class MainForm : Form
         Color outline = GetOutlineColor(mode);
         // 統一ストローク幅
         const float sw = 1.5f;
+
+        // 古いアイコンリソースをすべて解放してGDIリークを防ぐ
+        tsbNewMemo.Image?.Dispose();
+        tsbUndo.Image?.Dispose();
+        tsbRedo.Image?.Dispose();
+        tsbCut.Image?.Dispose();
+        tsbCopy.Image?.Dispose();
+        tsbPaste.Image?.Dispose();
+        tsbDelete.Image?.Dispose();
+        tsbGoogleSearch.Image?.Dispose();
+        tsbSettings.Image?.Dispose();
+        tsbAbout.Image?.Dispose();
 
         // === 新しいメモ (紙 + 「+」マーク) ===
         tsbNewMemo.Image = CreateIcon(g => {
@@ -357,6 +369,10 @@ public partial class MainForm : Form
     {
         bool tilted = tsbTopMost.Checked;
         const float sw = 1.5f;
+
+        // 古いアイコンリソースを解放してGDIリークを防ぐ
+        tsbTopMost.Image?.Dispose();
+
         tsbTopMost.Image = CreateIcon(g => {
             float angle = tilted ? 45f : 0f;
             var state = g.Save();
@@ -622,7 +638,18 @@ public partial class MainForm : Form
 
     private void ApplySettings()
     {
-        txtMain.Font = _appData.Config.GetFont();
+        // 新しいフォントを生成
+        var newFont = _appData.Config.GetFont();
+        // 同一オブジェクトでない場合のみ差し替える
+        if (txtMain.Font != newFont)
+        {
+            var oldFont = txtMain.Font;
+            txtMain.Font = newFont;
+            // フォームのデフォルトフォントと同一参照のものはDisposeしない（破壊するとフォーム全体がクラッシュする）
+            if (oldFont != this.Font)
+                oldFont?.Dispose();
+        }
+
         this.TopMost = _appData.Config.IsTopMost;
         tsbTopMost.Checked = this.TopMost;
 
@@ -684,6 +711,8 @@ public partial class MainForm : Form
     {
         // 設定ダイアログを表示 (現在のフォント・テーマ・ツールボタンサイズ・言語を渡す)
         using var dlg = new SettingsDialog(txtMain.Font, _appData.Config.Theme, _appData.Config.ToolButtonSize, _appData.Config.Language);
+        // TopMostが有効な場合、ダイアログも同じZ-Orderレイヤーに置く
+        dlg.TopMost = this.TopMost;
         if (dlg.ShowDialog(this) == DialogResult.OK)
         {
             _appData.Config.SetFont(dlg.CurrentFont);
@@ -706,6 +735,8 @@ public partial class MainForm : Form
     private void TsbAbout_Click(object? sender, EventArgs e)
     {
         using var dlg = new AboutDialog();
+        // TopMostが有効な場合、ダイアログも同じZ-Orderレイヤーに置く
+        dlg.TopMost = this.TopMost;
         dlg.ShowDialog(this);
     }
 
@@ -777,6 +808,33 @@ public partial class MainForm : Form
         tsbRedo.Enabled = _appData.History.CanRedo;
     }
 
+    private void TxtMain_KeyDown(object? sender, KeyEventArgs e)
+    {
+        // OS標準のRichTextBox内蔵Undo/Redo機能をキャンセルし、
+        // 独自の HistoryManager (tsbUndo/tsbRedo) へ処理をルーティングする
+        if (e.Control)
+        {
+            if (e.KeyCode == Keys.Z)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                if (tsbUndo.Enabled) tsbUndo.PerformClick();
+            }
+            else if (e.KeyCode == Keys.Y)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                if (tsbRedo.Enabled) tsbRedo.PerformClick();
+            }
+            else if (e.KeyCode == Keys.V) // Ctrl+Vの装飾付き貼り付けを抑制
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                PastePlainText();
+            }
+        }
+    }
+
     private void TxtMain_LinkClicked(object? sender, LinkClickedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace(e.LinkText))
@@ -789,15 +847,7 @@ public partial class MainForm : Form
         }
     }
 
-    // Ctrl+Vの装飾付き貼り付けを抑制
-    private void TxtMain_KeyDown(object? sender, KeyEventArgs e)
-    {
-        if (e.Control && e.KeyCode == Keys.V)
-        {
-            e.Handled = true;
-            PastePlainText();
-        }
-    }
+
 
     // 選択中のテキストを削除する
     private void DeleteSelectedText()

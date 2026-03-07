@@ -116,6 +116,9 @@ public partial class SettingsDialog : Form
     {
         using var fd = new FontDialog();
         fd.Font = CurrentFont;
+        // フォントサイズを10ptから48ptまでに制限してUI崩れを防止
+        fd.MinSize = 10;
+        fd.MaxSize = 48;
         if (fd.ShowDialog() == DialogResult.OK)
         {
             CurrentFont = fd.Font;

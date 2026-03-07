@@ -112,6 +112,44 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
         }
     }
 
+    // チェックマークの背景と枠線をテーマに合わせて描画
+    protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
+    {
+        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+
+        var rect = new Rectangle(3, 1, e.Item.Height - 3, e.Item.Height - 3);
+
+        if (isDark)
+        {
+            // ダークテーマ：チェックマーク背景を濃いグレー、枠線を明るめのグレー
+            using var brush = new SolidBrush(Color.FromArgb(50, 50, 55));
+            e.Graphics.FillRectangle(brush, rect);
+            using var pen = new Pen(Color.FromArgb(100, 100, 105));
+            e.Graphics.DrawRectangle(pen, rect.X, rect.Y, rect.Width - 1, rect.Height - 1);
+        }
+        else
+        {
+            base.OnRenderItemCheck(e);
+            return;
+        }
+
+        // チェックマーク自体 (画像設定がなければ「レ」を描画)
+        if (e.Image != null)
+        {
+            e.Graphics.DrawImage(e.Image, new Rectangle(rect.X + 2, rect.Y + 2, rect.Width - 4, rect.Height - 4));
+        }
+        else
+        {
+            using var checkPen = new Pen(Color.WhiteSmoke, 1.5f);
+            e.Graphics.DrawLines(checkPen, new[]
+            {
+                new Point(rect.X + 4, rect.Y + rect.Height / 2),
+                new Point(rect.X + rect.Width / 2 - 1, rect.Bottom - 4),
+                new Point(rect.Right - 4, rect.Y + 4)
+            });
+        }
+    }
+
     // コンテキストメニュー項目のホバー背景を描画
     protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
     {
