@@ -7,13 +7,9 @@ public class AppData
 {
     private const string ConfigFile = "config.json";
     private const string MemoFile = "memo.txt";
-    private const string HistoryFile = "history.dat";
 
     // 設定プロパティ
     public AppConfig Config { get; private set; } = new AppConfig();
-    
-    // 履歴管理
-    public HistoryManager History { get; private set; } = new HistoryManager();
 
     public string MemoContent { get; set; } = "";
 
@@ -59,9 +55,6 @@ public class AppData
             }
             catch (Exception ex) { ReportError("メモファイルの読み込みに失敗しました", ex); }
         }
-
-        // 履歴読み込み
-        History.Load(HistoryFile);
     }
 
     public void Save()
@@ -80,9 +73,6 @@ public class AppData
             File.WriteAllText(MemoFile, MemoContent, Encoding.UTF8);
         }
         catch (Exception ex) { ReportError("メモファイルの保存に失敗しました", ex); }
-
-        // 履歴保存
-        History.Save(HistoryFile);
     }
 
     // 非同期でメモのみを保存する（クラッシュ耐性向上のためのバックアップ用）
@@ -196,152 +186,6 @@ public class AppConfig
         {
             // 失敗した場合はシステムのデフォルトフォントを返す
             return SystemFonts.DefaultFont;
-        }
-    }
-}
-
-public class HistoryManager
-{
-    private const int MaxHistory = 200;
-    // 最低変化文字数 (この差分未満の変更は記録しない)
-    private const int MinChangeThreshold = 10;
-    private readonly Stack<string> _undoStack = new();
-    private readonly Stack<string> _redoStack = new();
-
-    public bool CanUndo => _undoStack.Count > 0;
-    public bool CanRedo => _redoStack.Count > 0;
-
-    public void Push(string text)
-    {
-        // 直前の状態と同じなら追加しない
-        if (_undoStack.Count > 0 && _undoStack.Peek() == text) return;
-
-        // 変化量が少なすぎる場合はスキップ (大きな変更のみ記録)
-        if (_undoStack.Count > 0)
-        {
-            var lastText = _undoStack.Peek();
-            int diff = Math.Abs(text.Length - lastText.Length);
-            if (diff < MinChangeThreshold && diff > 0)
-            {
-                // 改行の追加や貼り付けなど「構造的な変化」は許可
-                int lastLines = lastText.Split('\n').Length;
-                int currentLines = text.Split('\n').Length;
-                if (Math.Abs(currentLines - lastLines) < 2) return;
-            }
-        }
-
-        _undoStack.Push(text);
-        _redoStack.Clear();
-
-        // 制限を超えたら古いものを捨てる
-        if (_undoStack.Count > MaxHistory)
-        {
-            var list = _undoStack.ToList();
-            list.RemoveAt(list.Count - 1);
-            
-            _undoStack.Clear();
-            for (int i = list.Count - 1; i >= 0; i--)
-            {
-                _undoStack.Push(list[i]);
-            }
-        }
-    }
-
-    public string Undo(string currentText)
-    {
-        if (_undoStack.Count == 0) return currentText;
-
-        // スタックトップが現在のテキストと同じ場合はスキップ（「自分自身に戻る」バグの防止）
-        if (_undoStack.Peek() == currentText)
-        {
-            _undoStack.Pop(); // 同一エントリを捨てる
-            if (_undoStack.Count == 0) return currentText; // もう戻れない
-        }
-
-        // 現在の状態をRedoスタックへ
-        _redoStack.Push(currentText);
-
-        return _undoStack.Pop();
-    }
-
-    public string Redo(string currentText)
-    {
-        if (_redoStack.Count == 0) return currentText;
-
-        // スタックトップが現在のテキストと同じ場合はスキップ（一貫性のため）
-        if (_redoStack.Peek() == currentText)
-        {
-            _redoStack.Pop(); // 同一エントリを捨てる
-            if (_redoStack.Count == 0) return currentText; // もうやり直せない
-        }
-
-        // 現在の状態をUndoスタックへ
-        _undoStack.Push(currentText);
-
-        return _redoStack.Pop();
-    }
-
-    // JSON化用の中間DTO
-    private class HistoryData
-    {
-        public List<string> UndoList { get; set; } = new();
-        public List<string> RedoList { get; set; } = new();
-    }
-
-    public void Save(string filePath)
-    {
-        try
-        {
-            var data = new HistoryData
-            {
-                // Stack を List 化すると Top から順に（新しい順に）入る
-                UndoList = _undoStack.ToList(),
-                RedoList = _redoStack.ToList()
-            };
-            var json = JsonSerializer.Serialize(data);
-            File.WriteAllText(filePath, json);
-        }
-        catch (Exception ex) { AppData.ReportError("履歴データの保存に失敗しました", ex); }
-    }
-
-    public void Load(string filePath)
-    {
-        if (!File.Exists(filePath)) return;
-
-        try
-        {
-            var json = File.ReadAllText(filePath);
-            var data = JsonSerializer.Deserialize<HistoryData>(json);
-
-            _undoStack.Clear();
-            _redoStack.Clear();
-
-            if (data != null)
-            {
-                // リストは新しい順（Stack の Pop 順）で保存されているため、
-                // Stack の下から上に積み上げるには逆順に Push する必要がある。
-                data.UndoList.Reverse();
-                foreach (var item in data.UndoList)
-                {
-                    _undoStack.Push(item);
-                }
-
-                data.RedoList.Reverse();
-                foreach (var item in data.RedoList)
-                {
-                    _redoStack.Push(item);
-                }
-            }
-        }
-        catch (JsonException)
-        {
-            // 古いバイナリ形式の履歴ファイルや破損したJSONの場合はエラーを出さずに破棄
-            _undoStack.Clear();
-            _redoStack.Clear();
-        }
-        catch (Exception ex)
-        {
-            AppData.ReportError("履歴データの読み込みに失敗しました", ex);
         }
     }
 }

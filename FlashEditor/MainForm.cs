@@ -9,7 +9,7 @@ namespace FlashEditor;
 public partial class MainForm : Form
 {
     private readonly AppData _appData = new();
-    private readonly Timer _snapshotTimer = new();
+
     private readonly Timer _tooltipTimer = new();
     private readonly ToolTip _customToolTip = new();
     private ToolStripItem? _hoveredItem;
@@ -115,9 +115,7 @@ public partial class MainForm : Form
         // Ctrl+Vの装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
         txtMain.KeyDown += TxtMain_KeyDown;
 
-        // 履歴スナップショット用タイマー (3秒間操作がなければ履歴保存)
-        _snapshotTimer.Interval = 3000;
-        _snapshotTimer.Tick += SnapshotTimer_Tick;
+
 
         // システムのテーマ変更を監視するなら WndProc で WM_SETTINGCHANGE をフックする必要があるが
         // 簡易的に今回は起動時のみ、あるいは設定画面での切り替えとする
@@ -600,8 +598,6 @@ public partial class MainForm : Form
             txtMain.Focus();
         }));
         
-        // 永続化用の初回履歴プッシュ
-        _appData.History.Push(txtMain.Text);
         UpdateUndoRedoButtons();
         // 選択状態ボタンの初期化
         UpdateSelectionButtons();
@@ -631,9 +627,6 @@ public partial class MainForm : Form
         // (SettingsDialogで変更しているので同期不要だが念のため)
         
         _appData.MemoContent = txtMain.Text;
-
-        // 最後の変更を履歴に確実に残す
-        _appData.History.Push(txtMain.Text);
 
         _appData.Save();
     }
@@ -693,10 +686,6 @@ public partial class MainForm : Form
         txtMain.SelectionStart = 0;
         txtMain.SelectionLength = 0;
         txtMain.ScrollToCaret();
-
-        // 永続化用スナップショット保存
-        _snapshotTimer.Stop();
-        _appData.History.Push(txtMain.Text);
     }
 
     private void TsbTopMost_Click(object? sender, EventArgs e)
@@ -784,18 +773,9 @@ public partial class MainForm : Form
     {
         // Undo/Redoボタンの有効無効をRichTextBoxの状態から更新
         UpdateUndoRedoButtons();
-
-        // 永続化用タイマーリセット（3秒間無操作で履歴保存）
-        _snapshotTimer.Stop();
-        _snapshotTimer.Start();
     }
 
-    // 永続化用: 3秒間操作がなければ履歴に保存（クラッシュ復旧用）
-    private void SnapshotTimer_Tick(object? sender, EventArgs e)
-    {
-        _snapshotTimer.Stop();
-        _appData.History.Push(txtMain.Text);
-    }
+
 
     // RichTextBox内蔵のUndo/Redo状態からボタンの有効無効を更新
     private void UpdateUndoRedoButtons()
