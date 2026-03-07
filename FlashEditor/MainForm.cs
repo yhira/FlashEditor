@@ -611,7 +611,7 @@ public partial class MainForm : Form
                 this.Icon = new Icon(icoPath);
             }
         }
-        catch (Exception ex) { AppData.ReportError("アイコンファイルの読み込みに失敗しました", ex); }
+        catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_IconLoad") ?? "Failed to load icon file", ex); }
     }
 
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
@@ -768,7 +768,7 @@ public partial class MainForm : Form
                 string url = "https://www.google.com/search?q=" + Uri.EscapeDataString(text);
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
-            catch (Exception ex) { AppData.ReportError("ブラウザの起動に失敗しました", ex); }
+            catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_BrowserOpen") ?? "Failed to open browser", ex); }
         }
     }
 
@@ -816,7 +816,7 @@ public partial class MainForm : Form
             {
                 Process.Start(new ProcessStartInfo(e.LinkText) { UseShellExecute = true });
             }
-            catch (Exception ex) { AppData.ReportError("リンクを開けませんでした", ex); }
+            catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_LinkOpen") ?? "Could not open link", ex); }
         }
     }
 

@@ -27,5 +27,14 @@
   "Menu_About": "Acerca de",
   "About_Title": "Acerca de",
   "About_Author": "Autor: yhira",
-  "Menu_SelectAll": "Seleccionar todo"
+  "Menu_SelectAll": "Seleccionar todo",
+  "Error_Title": "FlashEditor - Error",
+  "Error_ConfigLoad": "Error al cargar el archivo de configuración",
+  "Error_MemoLoad": "Error al cargar el archivo de memo",
+  "Error_ConfigSave": "Error al guardar el archivo de configuración",
+  "Error_MemoSave": "Error al guardar el archivo de memo",
+  "Error_IconLoad": "Error al cargar el archivo de icono",
+  "Error_BrowserOpen": "Error al abrir el navegador",
+  "Error_LinkOpen": "No se pudo abrir el enlace",
+  "Error_ThemeDetect": "Error al detectar el tema del sistema"
 }

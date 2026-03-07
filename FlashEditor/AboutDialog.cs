@@ -40,6 +40,6 @@ public partial class AboutDialog : Form
         {
             Process.Start(new ProcessStartInfo("https://nelab.jp/") { UseShellExecute = true });
         }
-        catch (Exception ex) { AppData.ReportError("リンクを開けませんでした", ex); }
+        catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_LinkOpen") ?? "Could not open link", ex); }
     }
 }

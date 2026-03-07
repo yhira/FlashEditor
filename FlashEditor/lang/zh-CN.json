@@ -27,5 +27,14 @@
   "Menu_About": "关于",
   "About_Title": "关于",
   "About_Author": "作者：yhira",
-  "Menu_SelectAll": "全选"
+  "Menu_SelectAll": "全选",
+  "Error_Title": "FlashEditor - 错误",
+  "Error_ConfigLoad": "无法加载配置文件",
+  "Error_MemoLoad": "无法加载备忘录文件",
+  "Error_ConfigSave": "无法保存配置文件",
+  "Error_MemoSave": "无法保存备忘录文件",
+  "Error_IconLoad": "无法加载图标文件",
+  "Error_BrowserOpen": "无法打开浏览器",
+  "Error_LinkOpen": "无法打开链接",
+  "Error_ThemeDetect": "无法检测系统主题"
 }

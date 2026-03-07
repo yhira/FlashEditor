@@ -27,5 +27,14 @@
   "Menu_About": "バージョン情報",
   "About_Title": "バージョン情報",
   "About_Author": "作者：yhira",
-  "Menu_SelectAll": "すべて選択"
+  "Menu_SelectAll": "すべて選択",
+  "Error_Title": "FlashEditor - エラー",
+  "Error_ConfigLoad": "設定ファイルの読み込みに失敗しました",
+  "Error_MemoLoad": "メモファイルの読み込みに失敗しました",
+  "Error_ConfigSave": "設定ファイルの保存に失敗しました",
+  "Error_MemoSave": "メモファイルの保存に失敗しました",
+  "Error_IconLoad": "アイコンファイルの読み込みに失敗しました",
+  "Error_BrowserOpen": "ブラウザの起動に失敗しました",
+  "Error_LinkOpen": "リンクを開けませんでした",
+  "Error_ThemeDetect": "システムテーマの取得に失敗しました"
 }

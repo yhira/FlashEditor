@@ -27,5 +27,14 @@
   "Menu_About": "À propos",
   "About_Title": "À propos",
   "About_Author": "Auteur: yhira",
-  "Menu_SelectAll": "Tout sélectionner"
+  "Menu_SelectAll": "Tout sélectionner",
+  "Error_Title": "FlashEditor - Erreur",
+  "Error_ConfigLoad": "Échec du chargement du fichier de configuration",
+  "Error_MemoLoad": "Échec du chargement du fichier mémo",
+  "Error_ConfigSave": "Échec de l'enregistrement du fichier de configuration",
+  "Error_MemoSave": "Échec de l'enregistrement du fichier mémo",
+  "Error_IconLoad": "Échec du chargement du fichier d'icône",
+  "Error_BrowserOpen": "Impossible d'ouvrir le navigateur",
+  "Error_LinkOpen": "Impossible d'ouvrir le lien",
+  "Error_ThemeDetect": "Impossible de détecter le thème système"
 }

@@ -27,5 +27,14 @@
   "Menu_About": "關於",
   "About_Title": "關於",
   "About_Author": "作者：yhira",
-  "Menu_SelectAll": "全選"
+  "Menu_SelectAll": "全選",
+  "Error_Title": "FlashEditor - 錯誤",
+  "Error_ConfigLoad": "無法載入設定檔",
+  "Error_MemoLoad": "無法載入備忘錄檔案",
+  "Error_ConfigSave": "無法儲存設定檔",
+  "Error_MemoSave": "無法儲存備忘錄檔案",
+  "Error_IconLoad": "無法載入圖示檔案",
+  "Error_BrowserOpen": "無法開啟瀏覽器",
+  "Error_LinkOpen": "無法開啟連結",
+  "Error_ThemeDetect": "無法偵測系統佈景主題"
 }

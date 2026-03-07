@@ -27,5 +27,14 @@
   "Menu_About": "Info",
   "About_Title": "Über",
   "About_Author": "Autor: yhira",
-  "Menu_SelectAll": "Alles auswählen"
+  "Menu_SelectAll": "Alles auswählen",
+  "Error_Title": "FlashEditor - Fehler",
+  "Error_ConfigLoad": "Einstellungsdatei konnte nicht geladen werden",
+  "Error_MemoLoad": "Memo-Datei konnte nicht geladen werden",
+  "Error_ConfigSave": "Einstellungsdatei konnte nicht gespeichert werden",
+  "Error_MemoSave": "Memo-Datei konnte nicht gespeichert werden",
+  "Error_IconLoad": "Symboldatei konnte nicht geladen werden",
+  "Error_BrowserOpen": "Browser konnte nicht geöffnet werden",
+  "Error_LinkOpen": "Link konnte nicht geöffnet werden",
+  "Error_ThemeDetect": "Systemdesign konnte nicht erkannt werden"
 }

@@ -165,7 +165,7 @@ public static class ThemeManager
                 if (val is int i && i == 0) return ThemeMode.Dark;
             }
         }
-        catch (Exception ex) { AppData.ReportError("システムテーマの取得に失敗しました", ex); }
+        catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_ThemeDetect") ?? "Failed to detect system theme", ex); }
         return ThemeMode.Light;
     }
 

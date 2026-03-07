@@ -27,5 +27,14 @@
   "Menu_About": "About",
   "About_Title": "About Flash Editor",
   "About_Author": "Author: yhira",
-  "Menu_SelectAll": "Select All"
+  "Menu_SelectAll": "Select All",
+  "Error_Title": "FlashEditor - Error",
+  "Error_ConfigLoad": "Failed to load config file",
+  "Error_MemoLoad": "Failed to load memo file",
+  "Error_ConfigSave": "Failed to save config file",
+  "Error_MemoSave": "Failed to save memo file",
+  "Error_IconLoad": "Failed to load icon file",
+  "Error_BrowserOpen": "Failed to open browser",
+  "Error_LinkOpen": "Could not open link",
+  "Error_ThemeDetect": "Failed to detect system theme"
 }

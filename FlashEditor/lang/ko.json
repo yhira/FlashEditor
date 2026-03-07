@@ -27,5 +27,14 @@
   "Menu_About": "정보",
   "About_Title": "정보",
   "About_Author": "제작자: yhira",
-  "Menu_SelectAll": "모두 선택"
+  "Menu_SelectAll": "모두 선택",
+  "Error_Title": "FlashEditor - 오류",
+  "Error_ConfigLoad": "설정 파일을 불러오지 못했습니다",
+  "Error_MemoLoad": "메모 파일을 불러오지 못했습니다",
+  "Error_ConfigSave": "설정 파일을 저장하지 못했습니다",
+  "Error_MemoSave": "메모 파일을 저장하지 못했습니다",
+  "Error_IconLoad": "아이콘 파일을 불러오지 못했습니다",
+  "Error_BrowserOpen": "브라우저를 열지 못했습니다",
+  "Error_LinkOpen": "링크를 열 수 없습니다",
+  "Error_ThemeDetect": "시스템 테마를 감지하지 못했습니다"
 }

@@ -28,7 +28,7 @@ public class AppData
         // ユーザーにダイアログで通知
         MessageBox.Show(
             $"{context}\n\n{ex.Message}",
-            "FlashEditor - エラー",
+            LocalizationManager.GetString("Error_Title") ?? "FlashEditor - Error",
             MessageBoxButtons.OK,
             MessageBoxIcon.Warning);
     }
@@ -43,7 +43,7 @@ public class AppData
                 var json = File.ReadAllText(ConfigFile);
                 Config = JsonSerializer.Deserialize<AppConfig>(json) ?? new AppConfig();
             }
-            catch (Exception ex) { ReportError("設定ファイルの読み込みに失敗しました", ex); }
+            catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_ConfigLoad") ?? "Failed to load config file", ex); }
         }
 
         // Memo読み込み
@@ -53,7 +53,7 @@ public class AppData
             {
                 MemoContent = File.ReadAllText(MemoFile, Encoding.UTF8);
             }
-            catch (Exception ex) { ReportError("メモファイルの読み込みに失敗しました", ex); }
+            catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_MemoLoad") ?? "Failed to load memo file", ex); }
         }
     }
 
@@ -65,14 +65,14 @@ public class AppData
             var json = JsonSerializer.Serialize(Config);
             File.WriteAllText(ConfigFile, json);
         }
-        catch (Exception ex) { ReportError("設定ファイルの保存に失敗しました", ex); }
+        catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_ConfigSave") ?? "Failed to save config file", ex); }
 
         // Memo保存
         try
         {
             File.WriteAllText(MemoFile, MemoContent, Encoding.UTF8);
         }
-        catch (Exception ex) { ReportError("メモファイルの保存に失敗しました", ex); }
+        catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_MemoSave") ?? "Failed to save memo file", ex); }
     }
 
     // 非同期でメモのみを保存する（クラッシュ耐性向上のためのバックアップ用）
@@ -92,7 +92,7 @@ public class AppData
             try
             {
                 string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
-                string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] メモの自動バックアップに失敗しました: {ex.Message}\n";
+                string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Failed to auto-backup memo: {ex.Message}\n";
                 File.AppendAllText(logPath, entry);
             }
             catch { }
