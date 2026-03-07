@@ -41,13 +41,9 @@ public class HistoryManagerTests
         // スナップショット2をPush（十分な差分）
         sut.Push("これは大幅に変更された二番目の状態のテキストです");
 
-        // Undo: 現在の未保存テキスト（=スナップショット2と同じ内容）を渡す
-        // → スタックからスナップショット2（"これは大幅に..."）がPopされる
+        // Undo: currentTextがスタックtopと同一 → スキップされて「最初の状態」に戻る
         var result = sut.Undo("これは大幅に変更された二番目の状態のテキストです");
-        // Popされたのはスタックのtop → "これは大幅に変更された二番目の状態のテキストです"
-        // もう1回Undoして初期状態を取得
-        var result2 = sut.Undo(result);
-        result2.Should().Be("最初の状態");
+        result.Should().Be("最初の状態");
     }
 
     [Fact]
@@ -58,15 +54,12 @@ public class HistoryManagerTests
         sut.Push("状態A");
         sut.Push("状態Bは長い変更を含むテキストです。十分な差分量があります。");
 
-        // 現在テキスト="状態Bは..." → Undo → スタックtop "状態Bは..." がPop
-        var afterUndo1 = sut.Undo("状態Bは長い変更を含むテキストです。十分な差分量があります。");
-        // afterUndo1 == "状態Bは..." (topをポップ)
-        // もう一度Undo
-        var afterUndo2 = sut.Undo(afterUndo1);
-        afterUndo2.Should().Be("状態A");
+        // currentText="状態Bは..." → スキップロジックで「状態A」に直接戻る
+        var afterUndo = sut.Undo("状態Bは長い変更を含むテキストです。十分な差分量があります。");
+        afterUndo.Should().Be("状態A");
 
         // Redo → Redoスタックから復帰
-        var afterRedo = sut.Redo(afterUndo2);
+        var afterRedo = sut.Redo(afterUndo);
         afterRedo.Should().Be("状態Bは長い変更を含むテキストです。十分な差分量があります。");
     }
 
@@ -134,11 +127,9 @@ public class HistoryManagerTests
         sut.Push("1234567890");
 
         // 2つPushされているのでUndoで戻れる
+        // currentText == top("1234567890") → スキップされて直接 "ABCDEFGHIJ" に戻る
         var result = sut.Undo("1234567890");
-        result.Should().Be("1234567890");
-        // もう一度Undo
-        var result2 = sut.Undo(result);
-        result2.Should().Be("ABCDEFGHIJ");
+        result.Should().Be("ABCDEFGHIJ");
     }
 
     [Fact]
@@ -193,24 +184,24 @@ public class HistoryManagerTests
     // ===== スタック上限テスト =====
 
     [Fact]
-    public void スタックが1000件を超えると古いエントリが削除される()
+    public void スタックが200件を超えると古いエントリが削除される()
     {
         var sut = CreateSut();
 
-        // 1001件Push（各テキストの差分が10文字以上になるようにする）
-        for (int i = 0; i <= 1000; i++)
+        // 201件Push（各テキストの差分が10文字以上になるようにする）
+        for (int i = 0; i <= 200; i++)
         {
             sut.Push($"エントリ番号{i:D5} - このテキストは十分に長い差分を満たします");
         }
 
-        // 1000件以下に収まっているはず
+        // 200件以下に収まっているはず
         int undoCount = 0;
         while (sut.CanUndo)
         {
             sut.Undo("dummy");
             undoCount++;
         }
-        undoCount.Should().BeLessThanOrEqualTo(1000);
+        undoCount.Should().BeLessThanOrEqualTo(200);
     }
 
     // ===== Save/Load テスト =====
@@ -272,19 +263,64 @@ public class HistoryManagerTests
         sut.Push("テキスト2 - 大幅に変更された二番目の状態です。十分な差分があります。");
         sut.Push("テキスト3 - さらに大きく変わった三番目の最終状態のテキストです。これは非常に長いテキストで確実にしきい値を超えます。");
 
-        // Undo 3回（スタックから全てPop）
+        // Undo: currentText == top → スキップして次へ
         var u1 = sut.Undo("テキスト3 - さらに大きく変わった三番目の最終状態のテキストです。これは非常に長いテキストで確実にしきい値を超えます。");
-        var u2 = sut.Undo(u1);
-        u2.Should().Be("テキスト2 - 大幅に変更された二番目の状態です。十分な差分があります。");
+        u1.Should().Be("テキスト2 - 大幅に変更された二番目の状態です。十分な差分があります。");
 
-        var u3 = sut.Undo(u2);
-        u3.Should().Be("テキスト1");
+        var u2 = sut.Undo(u1);
+        u2.Should().Be("テキスト1");
 
         // Redo 2回
-        var r1 = sut.Redo(u3);
+        var r1 = sut.Redo(u2);
         r1.Should().Be("テキスト2 - 大幅に変更された二番目の状態です。十分な差分があります。");
 
         var r2 = sut.Redo(r1);
         r2.Should().Be("テキスト3 - さらに大きく変わった三番目の最終状態のテキストです。これは非常に長いテキストで確実にしきい値を超えます。");
+    }
+
+    // ===== スキップロジックのテスト =====
+
+    [Fact]
+    public void Undo時にスタックトップとcurrentTextが同一ならスキップされる()
+    {
+        var sut = CreateSut();
+
+        sut.Push("初期状態のテキスト");
+        sut.Push("変更後のテキストです。十分な長さの差分があります。");
+
+        // currentText がスタックトップと同じ → スキップして「初期状態のテキスト」に戻る
+        var result = sut.Undo("変更後のテキストです。十分な長さの差分があります。");
+        result.Should().Be("初期状態のテキスト");
+    }
+
+    [Fact]
+    public void Undo時にスタックトップとcurrentTextが異なればスキップされない()
+    {
+        var sut = CreateSut();
+
+        sut.Push("初期状態のテキスト");
+        sut.Push("変更後のテキストです。十分な長さの差分があります。");
+
+        // currentText がスタックトップと異なる → そのままPop
+        var result = sut.Undo("エディタで更にユーザーが入力した別のテキスト");
+        result.Should().Be("変更後のテキストです。十分な長さの差分があります。");
+    }
+
+    [Fact]
+    public void Redo時にスタックトップとcurrentTextが同一ならスキップされる()
+    {
+        var sut = CreateSut();
+
+        sut.Push("状態1のテキスト");
+        sut.Push("状態2は十分に長い変更テキストです。差分がしきい値を超えます。");
+
+        // Undo: トップスキップで「状態1のテキスト」に戻る
+        var afterUndo = sut.Undo("状態2は十分に長い変更テキストです。差分がしきい値を超えます。");
+        afterUndo.Should().Be("状態1のテキスト");
+
+        // Redo で「状態2」を復元。Redoスタックのトップは Undo 時に積んだ currentText と同じなのでスキップ
+        // ただし Redo スタックには「状態2は...」が積まれているはず
+        var afterRedo = sut.Redo(afterUndo);
+        afterRedo.Should().Be("状態2は十分に長い変更テキストです。差分がしきい値を超えます。");
     }
 }

@@ -13,7 +13,7 @@ public partial class MainForm : Form
     private readonly Timer _tooltipTimer = new();
     private readonly ToolTip _customToolTip = new();
     private ToolStripItem? _hoveredItem;
-    private bool _isUndoRedoAction = false;
+
 
     // Win32 API: RichTextBox 内部のテキスト描画領域を設定するために使用
     [DllImport("user32.dll")]
@@ -589,6 +589,8 @@ public partial class MainForm : Form
 
         // テキスト復元
         txtMain.Text = _appData.MemoContent;
+        // 初期ロードの「元に戻す」を無効にする（ファイル読み込みをUndoさせない）
+        txtMain.ClearUndo();
         // 描画完了後にマージン設定とキャレットを確実に先頭へ移動し、フォーカスを当てて点滅させる
         this.BeginInvoke(new Action(() =>
         {
@@ -598,7 +600,7 @@ public partial class MainForm : Form
             txtMain.Focus();
         }));
         
-        // 初回履歴プッシュ
+        // 永続化用の初回履歴プッシュ
         _appData.History.Push(txtMain.Text);
         UpdateUndoRedoButtons();
         // 選択状態ボタンの初期化
@@ -692,10 +694,9 @@ public partial class MainForm : Form
         txtMain.SelectionLength = 0;
         txtMain.ScrollToCaret();
 
-        // スナップショット保存
+        // 永続化用スナップショット保存
         _snapshotTimer.Stop();
         _appData.History.Push(txtMain.Text);
-        UpdateUndoRedoButtons();
     }
 
     private void TsbTopMost_Click(object? sender, EventArgs e)
@@ -740,27 +741,22 @@ public partial class MainForm : Form
         dlg.ShowDialog(this);
     }
 
+    // RichTextBox内蔵のUndo機能を使用（Windows標準と同じ細かい粒度で動作）
     private void TsbUndo_Click(object? sender, EventArgs e)
     {
-        if (_appData.History.CanUndo)
+        if (txtMain.CanUndo)
         {
-            _isUndoRedoAction = true;
-            // 現在のテキストをRedo用に保存してから戻す
-            // HistoryManager.Undo内で現在のテキストをRedoStackに積む処理があるので
-            // ここでは戻り値を受け取るだけ
-            txtMain.Text = _appData.History.Undo(txtMain.Text);
-            _isUndoRedoAction = false;
+            txtMain.Undo();
             UpdateUndoRedoButtons();
         }
     }
 
+    // RichTextBox内蔵のRedo機能を使用
     private void TsbRedo_Click(object? sender, EventArgs e)
     {
-        if (_appData.History.CanRedo)
+        if (txtMain.CanRedo)
         {
-            _isUndoRedoAction = true;
-            txtMain.Text = _appData.History.Redo(txtMain.Text);
-            _isUndoRedoAction = false;
+            txtMain.Redo();
             UpdateUndoRedoButtons();
         }
     }
@@ -786,52 +782,37 @@ public partial class MainForm : Form
 
     private void TxtMain_TextChanged(object? sender, EventArgs e)
     {
-        UpdateUndoRedoButtons(); // Undo/Redoボタンの有効無効更新(文字入力したのでRedoは消えるはずだがManager次第)
+        // Undo/Redoボタンの有効無効をRichTextBoxの状態から更新
+        UpdateUndoRedoButtons();
 
-        if (_isUndoRedoAction) return;
-
-        // タイマーリセット
+        // 永続化用タイマーリセット（3秒間無操作で履歴保存）
         _snapshotTimer.Stop();
         _snapshotTimer.Start();
     }
 
+    // 永続化用: 3秒間操作がなければ履歴に保存（クラッシュ復旧用）
     private void SnapshotTimer_Tick(object? sender, EventArgs e)
     {
         _snapshotTimer.Stop();
         _appData.History.Push(txtMain.Text);
-        UpdateUndoRedoButtons();
     }
 
+    // RichTextBox内蔵のUndo/Redo状態からボタンの有効無効を更新
     private void UpdateUndoRedoButtons()
     {
-        tsbUndo.Enabled = _appData.History.CanUndo;
-        tsbRedo.Enabled = _appData.History.CanRedo;
+        tsbUndo.Enabled = txtMain.CanUndo;
+        tsbRedo.Enabled = txtMain.CanRedo;
     }
 
     private void TxtMain_KeyDown(object? sender, KeyEventArgs e)
     {
-        // OS標準のRichTextBox内蔵Undo/Redo機能をキャンセルし、
-        // 独自の HistoryManager (tsbUndo/tsbRedo) へ処理をルーティングする
-        if (e.Control)
+        // Ctrl+Z / Ctrl+Y はRichTextBox内蔵のUndo/Redoに任せる（インターセプト不要）
+        // Ctrl+Vのみ装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
+        if (e.Control && e.KeyCode == Keys.V)
         {
-            if (e.KeyCode == Keys.Z)
-            {
-                e.Handled = true;
-                e.SuppressKeyPress = true;
-                if (tsbUndo.Enabled) tsbUndo.PerformClick();
-            }
-            else if (e.KeyCode == Keys.Y)
-            {
-                e.Handled = true;
-                e.SuppressKeyPress = true;
-                if (tsbRedo.Enabled) tsbRedo.PerformClick();
-            }
-            else if (e.KeyCode == Keys.V) // Ctrl+Vの装飾付き貼り付けを抑制
-            {
-                e.Handled = true;
-                e.SuppressKeyPress = true;
-                PastePlainText();
-            }
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+            PastePlainText();
         }
     }
 

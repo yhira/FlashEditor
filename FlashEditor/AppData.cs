@@ -251,6 +251,13 @@ public class HistoryManager
     {
         if (_undoStack.Count == 0) return currentText;
 
+        // スタックトップが現在のテキストと同じ場合はスキップ（「自分自身に戻る」バグの防止）
+        if (_undoStack.Peek() == currentText)
+        {
+            _undoStack.Pop(); // 同一エントリを捨てる
+            if (_undoStack.Count == 0) return currentText; // もう戻れない
+        }
+
         // 現在の状態をRedoスタックへ
         _redoStack.Push(currentText);
 
@@ -260,6 +267,13 @@ public class HistoryManager
     public string Redo(string currentText)
     {
         if (_redoStack.Count == 0) return currentText;
+
+        // スタックトップが現在のテキストと同じ場合はスキップ（一貫性のため）
+        if (_redoStack.Peek() == currentText)
+        {
+            _redoStack.Pop(); // 同一エントリを捨てる
+            if (_redoStack.Count == 0) return currentText; // もうやり直せない
+        }
 
         // 現在の状態をUndoスタックへ
         _undoStack.Push(currentText);
