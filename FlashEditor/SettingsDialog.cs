@@ -20,30 +20,30 @@ public partial class SettingsDialog : Form
         CurrentLanguage = currentLanguage;
 
         // UIテキストのローカライズ適用
-        this.Text = LocalizationManager.GetString("Settings_Title");
-        lblFont.Text = LocalizationManager.GetString("Settings_Font");
-        btnChangeFont.Text = LocalizationManager.GetString("Settings_ChangeFont");
-        lblTheme.Text = LocalizationManager.GetString("Settings_Theme");
-        lblToolButtonSize.Text = LocalizationManager.GetString("Settings_ToolButtonSize");
-        lblLanguage.Text = LocalizationManager.GetString("Settings_Language");
-        btnOK.Text = LocalizationManager.GetString("Button_OK");
-        btnCancel.Text = LocalizationManager.GetString("Button_Cancel");
+        this.Text = LocalizationManager.GetString("Settings_Title") ?? "Flash Editor Settings";
+        lblFont.Text = LocalizationManager.GetString("Settings_Font") ?? "Font:";
+        btnChangeFont.Text = LocalizationManager.GetString("Settings_ChangeFont") ?? "Change Font...";
+        lblTheme.Text = LocalizationManager.GetString("Settings_Theme") ?? "Theme:";
+        lblToolButtonSize.Text = LocalizationManager.GetString("Settings_ToolButtonSize") ?? "Button Size:";
+        lblLanguage.Text = LocalizationManager.GetString("Settings_Language") ?? "Language:";
+        btnOK.Text = LocalizationManager.GetString("Button_OK") ?? "OK";
+        btnCancel.Text = LocalizationManager.GetString("Button_Cancel") ?? "Cancel";
 
         // 初期値反映
         UpdateFontPreview();
 
         // テーマ選択肢の設定
-        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_System"));
-        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_Light"));
-        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_Dark"));
+        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_System") ?? "System Default");
+        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_Light") ?? "Light");
+        cmbTheme.Items.Add(LocalizationManager.GetString("Settings_Theme_Dark") ?? "Dark");
         cmbTheme.SelectedIndex = (int)CurrentTheme;
         // ComboBox のオーナードロー描画イベントを登録
         cmbTheme.DrawItem += CmbOwnerDraw_DrawItem;
 
         // ツールボタンサイズ選択肢の設定
-        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Small"));
-        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Medium"));
-        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Large"));
+        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Small") ?? "Small");
+        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Medium") ?? "Medium");
+        cmbToolButtonSize.Items.Add(LocalizationManager.GetString("Settings_ToolButtonSize_Large") ?? "Large");
         cmbToolButtonSize.SelectedIndex = (int)CurrentToolButtonSize;
         // ComboBox のオーナードロー描画イベントを登録（テーマと共通）
         cmbToolButtonSize.DrawItem += CmbOwnerDraw_DrawItem;

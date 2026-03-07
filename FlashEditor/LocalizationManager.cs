@@ -101,12 +101,13 @@ public static class LocalizationManager
     /// キーからローカライズされた文字列を取得します。
     /// 見つからない場合はキー自身を返します（デバッグのため）。
     /// </summary>
-    public static string GetString(string key)
+    public static string? GetString(string key)
     {
         if (_strings.TryGetValue(key, out var value))
         {
             return value;
         }
-        return $"[{key}]";
+        // キーが見つからない場合は null を返す（? ? フォールバックを有効にするため）
+        return null;
     }
 }
