@@ -50,9 +50,10 @@ public class AppDataTests : IDisposable
         var act = () => appData.Load();
         act.Should().NotThrow();
 
-        // デフォルト値のまま
+        // デフォルト値のまま（フォント名はシステム言語に依存するため動的に取得）
         appData.MemoContent.Should().BeEmpty();
-        appData.Config.FontName.Should().Be("Yu Gothic UI");
+        var expectedFont = new AppConfig().FontName;
+        appData.Config.FontName.Should().Be(expectedFont);
     }
 
     // ===== Save/Load テスト =====

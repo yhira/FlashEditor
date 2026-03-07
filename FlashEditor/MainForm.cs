@@ -133,15 +133,15 @@ public partial class MainForm : Form
         var contextMenu = new ContextMenuStrip();
         // ToolStrip と同じカスタムレンダラーを適用してダークテーマに対応
         contextMenu.Renderer = new CustomToolStripRenderer();
-        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Cut"), CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
-        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Copy"), CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
-        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Paste"), CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
-        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Delete"), CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeys = Keys.Delete;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Cut") ?? "Cut", CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Copy") ?? "Copy", CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Paste") ?? "Paste", CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Delete") ?? "Delete", CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeys = Keys.Delete;
         contextMenu.Items.Add(new ToolStripSeparator());
-        contextMenu.Items.Add(LocalizationManager.GetString("Menu_GoogleSearch"), CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
+        contextMenu.Items.Add(LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google", CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
         contextMenu.Items.Add(new ToolStripSeparator());
         // すべて選択（ローカライズ対応）
-        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_SelectAll"), null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_SelectAll") ?? "Select All", null, (s, e) => txtMain.SelectAll())).ShortcutKeys = Keys.Control | Keys.A;
         
         txtMain.ContextMenuStrip = contextMenu;
     }
@@ -149,35 +149,35 @@ public partial class MainForm : Form
     // UIのテキストを現在の言語に更新する
     private void ApplyLanguage()
     {
-        tsbNewMemo.Text = LocalizationManager.GetString("Menu_NewMemo");
-        tsbNewMemo.ToolTipText = LocalizationManager.GetString("Menu_NewMemo");
+        tsbNewMemo.Text = LocalizationManager.GetString("Menu_NewMemo") ?? "New Memo";
+        tsbNewMemo.ToolTipText = LocalizationManager.GetString("Menu_NewMemo") ?? "New Memo";
 
-        tsbTopMost.Text = LocalizationManager.GetString("Menu_TopMost");
-        tsbTopMost.ToolTipText = LocalizationManager.GetString("Menu_TopMost");
+        tsbTopMost.Text = LocalizationManager.GetString("Menu_TopMost") ?? "Always on Top";
+        tsbTopMost.ToolTipText = LocalizationManager.GetString("Menu_TopMost") ?? "Always on Top";
 
-        tsbUndo.Text = LocalizationManager.GetString("Menu_Undo");
-        tsbUndo.ToolTipText = LocalizationManager.GetString("Menu_Undo") + " (Ctrl+Z)";
+        tsbUndo.Text = LocalizationManager.GetString("Menu_Undo") ?? "Undo";
+        tsbUndo.ToolTipText = (LocalizationManager.GetString("Menu_Undo") ?? "Undo") + " (Ctrl+Z)";
 
-        tsbRedo.Text = LocalizationManager.GetString("Menu_Redo");
-        tsbRedo.ToolTipText = LocalizationManager.GetString("Menu_Redo") + " (Ctrl+Y)";
+        tsbRedo.Text = LocalizationManager.GetString("Menu_Redo") ?? "Redo";
+        tsbRedo.ToolTipText = (LocalizationManager.GetString("Menu_Redo") ?? "Redo") + " (Ctrl+Y)";
 
-        tsbCut.Text = LocalizationManager.GetString("Menu_Cut");
-        tsbCut.ToolTipText = LocalizationManager.GetString("Menu_Cut") + " (Ctrl+X)";
+        tsbCut.Text = LocalizationManager.GetString("Menu_Cut") ?? "Cut";
+        tsbCut.ToolTipText = (LocalizationManager.GetString("Menu_Cut") ?? "Cut") + " (Ctrl+X)";
 
-        tsbCopy.Text = LocalizationManager.GetString("Menu_Copy");
-        tsbCopy.ToolTipText = LocalizationManager.GetString("Menu_Copy") + " (Ctrl+C)";
+        tsbCopy.Text = LocalizationManager.GetString("Menu_Copy") ?? "Copy";
+        tsbCopy.ToolTipText = (LocalizationManager.GetString("Menu_Copy") ?? "Copy") + " (Ctrl+C)";
 
-        tsbPaste.Text = LocalizationManager.GetString("Menu_Paste");
-        tsbPaste.ToolTipText = LocalizationManager.GetString("Menu_Paste") + " (Ctrl+V)";
+        tsbPaste.Text = LocalizationManager.GetString("Menu_Paste") ?? "Paste";
+        tsbPaste.ToolTipText = (LocalizationManager.GetString("Menu_Paste") ?? "Paste") + " (Ctrl+V)";
 
-        tsbDelete.Text = LocalizationManager.GetString("Menu_Delete");
-        tsbDelete.ToolTipText = LocalizationManager.GetString("Menu_Delete") + " (Delete)";
+        tsbDelete.Text = LocalizationManager.GetString("Menu_Delete") ?? "Delete";
+        tsbDelete.ToolTipText = (LocalizationManager.GetString("Menu_Delete") ?? "Delete") + " (Delete)";
 
-        tsbGoogleSearch.Text = LocalizationManager.GetString("Menu_GoogleSearch");
-        tsbGoogleSearch.ToolTipText = LocalizationManager.GetString("Menu_GoogleSearch");
+        tsbGoogleSearch.Text = LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google";
+        tsbGoogleSearch.ToolTipText = LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google";
 
-        tsbSettings.Text = LocalizationManager.GetString("Menu_Settings");
-        tsbSettings.ToolTipText = LocalizationManager.GetString("Menu_Settings");
+        tsbSettings.Text = LocalizationManager.GetString("Menu_Settings") ?? "Settings";
+        tsbSettings.ToolTipText = LocalizationManager.GetString("Menu_Settings") ?? "Settings";
 
         tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "About";
         tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "About";
