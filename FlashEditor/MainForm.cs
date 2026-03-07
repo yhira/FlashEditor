@@ -9,6 +9,7 @@ namespace FlashEditor;
 public partial class MainForm : Form
 {
     private readonly AppData _appData = new();
+    private readonly Timer _autoSaveTimer = new();
     private readonly Timer _tooltipTimer = new();
     private readonly ToolTip _customToolTip = new();
     private ToolStripItem? _hoveredItem;
@@ -111,6 +112,10 @@ public partial class MainForm : Form
         txtMain.SizeChanged += (s, e) => UpdateEditorMargin();
         // Ctrl+Vの装飾付き貼り付けを抑制してプレーンテキスト貼り付けにする
         txtMain.KeyDown += TxtMain_KeyDown;
+
+        // メモ自動保存用タイマー (3秒間無操作でメモをファイルに保存)
+        _autoSaveTimer.Interval = 3000;
+        _autoSaveTimer.Tick += AutoSaveTimer_Tick;
 
         // システムのテーマ変更を監視するなら WndProc で WM_SETTINGCHANGE をフックする必要があるが
         // 簡易的に今回は起動時のみ、あるいは設定画面での切り替えとする
@@ -768,6 +773,17 @@ public partial class MainForm : Form
     {
         // Undo/Redoボタンの有効無効をRichTextBoxの状態から更新
         UpdateUndoRedoButtons();
+
+        // 自動保存タイマーリセット（3秒間無操作でメモをファイルに保存）
+        _autoSaveTimer.Stop();
+        _autoSaveTimer.Start();
+    }
+
+    // 3秒間操作がなければメモをファイルに自動保存（クラッシュ時のデータ損失を防止）
+    private void AutoSaveTimer_Tick(object? sender, EventArgs e)
+    {
+        _autoSaveTimer.Stop();
+        _appData.SaveMemoAsync(txtMain.Text);
     }
 
     // RichTextBox内蔵のUndo/Redo状態からボタンの有効無効を更新
