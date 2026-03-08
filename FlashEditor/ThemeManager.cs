@@ -73,11 +73,19 @@ public static class ThemeManager
             {
                 rtb.BackColor = Color.FromArgb(30, 30, 30); // 少し明るめ
                 rtb.ForeColor = Color.WhiteSmoke;
+                // スクロールバーをダークモードに対応させる
+                if (!rtb.IsHandleCreated) { _ = rtb.Handle; }
+                SetWindowTheme(rtb.Handle, "DarkMode_Explorer", null);
             }
             else
             {
                 rtb.BackColor = SystemColors.Window;
                 rtb.ForeColor = SystemColors.WindowText;
+                // スクロールバーをライトモードに戻す
+                if (rtb.IsHandleCreated)
+                {
+                    SetWindowTheme(rtb.Handle, "", null);
+                }
             }
         }
         else if (c is ToolStrip ts)
