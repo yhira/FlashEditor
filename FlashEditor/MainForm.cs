@@ -136,7 +136,8 @@ public partial class MainForm : Form
         ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Cut") ?? "Cut", CreateIcon(DrawCutIcon, 16), (s, e) => txtMain.Cut())).ShortcutKeys = Keys.Control | Keys.X;
         ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Copy") ?? "Copy", CreateIcon(DrawCopyIcon, 16), (s, e) => txtMain.Copy())).ShortcutKeys = Keys.Control | Keys.C;
         ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Paste") ?? "Paste", CreateIcon(DrawPasteIcon, 16), (s, e) => PastePlainText())).ShortcutKeys = Keys.Control | Keys.V;
-        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Delete") ?? "Delete", CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeys = Keys.Delete;
+        // Delキーの標準機能（1文字削除）を妨害しないよう、ShortcutKeysの代わりにショートカットの表示名だけを設定します
+        ((ToolStripMenuItem)contextMenu.Items.Add(LocalizationManager.GetString("Menu_Delete") ?? "Delete", CreateIcon(DrawDeleteIcon, 16), (s, e) => DeleteSelectedText())).ShortcutKeyDisplayString = "Del";
         contextMenu.Items.Add(new ToolStripSeparator());
         contextMenu.Items.Add(LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google", CreateIcon(DrawSearchIcon, 16), TsbGoogleSearch_Click);
         contextMenu.Items.Add(new ToolStripSeparator());
