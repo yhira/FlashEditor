@@ -45,6 +45,9 @@ public partial class MainForm : Form
 
     public MainForm()
     {
+        // 起動時の白画面チラつき防止のため、初期化処理開始時は完全に透明にしておく
+        this.Opacity = 0;
+
         InitializeComponent();
         
         // エディターの枠線を消してマージン領域をシームレスにする
@@ -88,6 +91,7 @@ public partial class MainForm : Form
 
         // イベントハンドラ設定
         this.Load += MainForm_Load;
+        this.Shown += MainForm_Shown;
         this.FormClosing += MainForm_FormClosing;
         
         tsbNewMemo.Click += TsbNewMemo_Click;
@@ -548,6 +552,13 @@ public partial class MainForm : Form
         };
         Font font = e.Font ?? SystemFonts.DefaultFont;
         e.Graphics.DrawString(e.ToolTipText, font, textBrush, e.Bounds, sf);
+    }
+
+    private void MainForm_Shown(object? sender, EventArgs e)
+    {
+        // 起動時の白枠チラつき（ホワイトフラッシュ）防止のため、
+        // 描画と初期化がすべて完了したこのタイミングで不透明度を 100% に戻す
+        this.Opacity = 1.0;
     }
 
     private void MainForm_Load(object? sender, EventArgs e)
