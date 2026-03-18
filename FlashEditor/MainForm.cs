@@ -1014,7 +1014,7 @@ public partial class MainForm : Form
             txtMain.ScrollToCaret();
 
             // 全マッチ件数と現在位置を計算して多言語対応で表示
-            var (totalCount, currentIndex) = CountAllMatches(searchText, index);
+            var (totalCount, currentIndex) = SearchHelper.CountAllMatches(txtMain, searchText, index, btnMatchCase.Checked, btnWholeWord.Checked);
             string fmt = LocalizationManager.GetString("Search_MatchCount") ?? "{0} 件中 {1} 件目";
             lblSearchMessage.Text = string.Format(fmt, totalCount, currentIndex);
             lblSearchMessage.ForeColor = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark
@@ -1025,35 +1025,6 @@ public partial class MainForm : Form
             lblSearchMessage.Text = LocalizationManager.GetString("Search_NotFound") ?? "見つかりません";
             lblSearchMessage.ForeColor = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark ? Color.LightCoral : Color.Red;
         }
-    }
-
-    // テキスト全体を走査して総マッチ数と、現在位置が何番目かを返す
-    private (int totalCount, int currentIndex) CountAllMatches(string searchText, int currentPos)
-    {
-        // 検索オプションを構築（方向は常に前方で全走査）
-        RichTextBoxFinds options = RichTextBoxFinds.None;
-        if (btnMatchCase.Checked) options |= RichTextBoxFinds.MatchCase;
-        if (btnWholeWord.Checked) options |= RichTextBoxFinds.WholeWord;
-
-        int total = 0;
-        int currentIndex = 0;
-        int pos = 0;
-
-        // 先頭から末尾まで繰り返し検索してカウント
-        while (pos < txtMain.TextLength)
-        {
-            int found = txtMain.Find(searchText, pos, txtMain.TextLength, options);
-            if (found == -1) break;
-            total++;
-            // 現在選択中の位置と一致したら何番目かを記録
-            if (found == currentPos) currentIndex = total;
-            pos = found + searchText.Length;
-        }
-
-        // 選択位置を元に戻す（Find呼び出しで選択がずれるので）
-        txtMain.Select(currentPos, searchText.Length);
-
-        return (total, currentIndex);
     }
 
     private void ShowSearchBar()
