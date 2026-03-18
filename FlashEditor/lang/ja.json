@@ -36,5 +36,13 @@
   "Error_IconLoad": "アイコンファイルの読み込みに失敗しました",
   "Error_BrowserOpen": "ブラウザの起動に失敗しました",
   "Error_LinkOpen": "リンクを開けませんでした",
-  "Error_ThemeDetect": "システムテーマの取得に失敗しました"
+  "Error_ThemeDetect": "システムテーマの取得に失敗しました",
+  "Menu_Find": "検索",
+  "Search_Prev": "前の候補 (Shift+Enter)",
+  "Search_Next": "次の候補 (Enter)",
+  "Search_MatchCase": "大文字と小文字を区別する",
+  "Search_WholeWord": "単語単位で検索する",
+  "Search_Close": "閉じる (Esc)",
+  "Search_NotFound": "見つかりません",
+  "Search_MatchCount": "{0} 件中 {1} 件目"
 }

@@ -36,5 +36,13 @@
   "Error_IconLoad": "无法加载图标文件",
   "Error_BrowserOpen": "无法打开浏览器",
   "Error_LinkOpen": "无法打开链接",
-  "Error_ThemeDetect": "无法检测系统主题"
+  "Error_ThemeDetect": "无法检测系统主题",
+  "Menu_Find": "查找",
+  "Search_Prev": "上一个 (Shift+Enter)",
+  "Search_Next": "下一个 (Enter)",
+  "Search_MatchCase": "区分大小写",
+  "Search_WholeWord": "全字匹配",
+  "Search_Close": "关闭 (Esc)",
+  "Search_NotFound": "未找到",
+  "Search_MatchCount": "第 {1} 个，共 {0} 个"
 }

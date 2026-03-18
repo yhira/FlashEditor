@@ -1,4 +1,4 @@
-﻿namespace FlashEditor;
+namespace FlashEditor;
 
 partial class MainForm
 {
@@ -30,6 +30,7 @@ partial class MainForm
         this.tsbPaste = new System.Windows.Forms.ToolStripButton();
         this.tsbDelete = new System.Windows.Forms.ToolStripButton();
         this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+        this.tsbFind = new System.Windows.Forms.ToolStripButton();
         this.tsbGoogleSearch = new System.Windows.Forms.ToolStripButton();
         this.tsbSettings = new System.Windows.Forms.ToolStripButton();
         this.tsbAbout = new System.Windows.Forms.ToolStripButton();
@@ -52,6 +53,7 @@ partial class MainForm
         this.tsbPaste,
         this.tsbDelete,
         this.toolStripSeparator2,
+        this.tsbFind,
         this.tsbGoogleSearch,
         this.toolStripSeparator3,
         this.tsbSettings,
@@ -154,6 +156,15 @@ partial class MainForm
         this.toolStripSeparator3.Name = "toolStripSeparator3";
         this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
         // 
+        // tsbFind
+        // 
+        this.tsbFind.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+        this.tsbFind.ImageTransparentColor = System.Drawing.Color.Magenta;
+        this.tsbFind.Name = "tsbFind";
+        this.tsbFind.Size = new System.Drawing.Size(23, 22);
+        this.tsbFind.Text = "検索";
+        this.tsbFind.ToolTipText = "検索 (Ctrl+F)";
+        // 
         // tsbGoogleSearch
         // 
         this.tsbGoogleSearch.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -225,6 +236,7 @@ partial class MainForm
     private System.Windows.Forms.ToolStripButton tsbPaste;
     private System.Windows.Forms.ToolStripButton tsbDelete;
     private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+    private System.Windows.Forms.ToolStripButton tsbFind;
     private System.Windows.Forms.ToolStripButton tsbGoogleSearch;
     private System.Windows.Forms.ToolStripButton tsbSettings;
     private System.Windows.Forms.ToolStripButton tsbAbout;

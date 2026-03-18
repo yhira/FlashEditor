@@ -36,5 +36,13 @@
   "Error_IconLoad": "Impossibile caricare il file icona",
   "Error_BrowserOpen": "Impossibile aprire il browser",
   "Error_LinkOpen": "Impossibile aprire il link",
-  "Error_ThemeDetect": "Impossibile rilevare il tema di sistema"
+  "Error_ThemeDetect": "Impossibile rilevare il tema di sistema",
+  "Menu_Find": "Cerca",
+  "Search_Prev": "Precedente (Maiusc+Invio)",
+  "Search_Next": "Successivo (Invio)",
+  "Search_MatchCase": "Maiuscole/minuscole",
+  "Search_WholeWord": "Parola intera",
+  "Search_Close": "Chiudi (Esc)",
+  "Search_NotFound": "Non trovato",
+  "Search_MatchCount": "{1} di {0}"
 }

@@ -101,6 +101,25 @@ public static class ThemeManager
                 ts.BackColor = SystemColors.Control;
                 ts.ForeColor = SystemColors.ControlText;
             }
+
+            foreach (ToolStripItem item in ts.Items)
+            {
+                if (item is ToolStripTextBox tstb)
+                {
+                    if (mode == ThemeMode.Dark)
+                    {
+                        tstb.BackColor = Color.FromArgb(50, 50, 50);
+                        tstb.ForeColor = Color.WhiteSmoke;
+                        // To properly style the inner TextBox border, unfortunately ToolStripTextBox is limited,
+                        // but setting BackColor and ForeColor is sufficient for the inside.
+                    }
+                    else
+                    {
+                        tstb.BackColor = SystemColors.Window;
+                        tstb.ForeColor = SystemColors.WindowText;
+                    }
+                }
+            }
         }
         else if (c is Button btn)
         {

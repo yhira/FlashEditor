@@ -36,5 +36,13 @@
   "Error_IconLoad": "Failed to load icon file",
   "Error_BrowserOpen": "Failed to open browser",
   "Error_LinkOpen": "Could not open link",
-  "Error_ThemeDetect": "Failed to detect system theme"
+  "Error_ThemeDetect": "Failed to detect system theme",
+  "Menu_Find": "Find",
+  "Search_Prev": "Previous (Shift+Enter)",
+  "Search_Next": "Next (Enter)",
+  "Search_MatchCase": "Match Case",
+  "Search_WholeWord": "Match Whole Word",
+  "Search_Close": "Close (Esc)",
+  "Search_NotFound": "Not found",
+  "Search_MatchCount": "{1} of {0}"
 }

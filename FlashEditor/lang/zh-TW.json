@@ -36,5 +36,13 @@
   "Error_IconLoad": "無法載入圖示檔案",
   "Error_BrowserOpen": "無法開啟瀏覽器",
   "Error_LinkOpen": "無法開啟連結",
-  "Error_ThemeDetect": "無法偵測系統佈景主題"
+  "Error_ThemeDetect": "無法偵測系統佈景主題",
+  "Menu_Find": "尋找",
+  "Search_Prev": "上一個 (Shift+Enter)",
+  "Search_Next": "下一個 (Enter)",
+  "Search_MatchCase": "區分大小寫",
+  "Search_WholeWord": "全字比對",
+  "Search_Close": "關閉 (Esc)",
+  "Search_NotFound": "找不到",
+  "Search_MatchCount": "第 {1} 個，共 {0} 個"
 }

@@ -36,5 +36,13 @@
   "Error_IconLoad": "아이콘 파일을 불러오지 못했습니다",
   "Error_BrowserOpen": "브라우저를 열지 못했습니다",
   "Error_LinkOpen": "링크를 열 수 없습니다",
-  "Error_ThemeDetect": "시스템 테마를 감지하지 못했습니다"
+  "Error_ThemeDetect": "시스템 테마를 감지하지 못했습니다",
+  "Menu_Find": "검색",
+  "Search_Prev": "이전 (Shift+Enter)",
+  "Search_Next": "다음 (Enter)",
+  "Search_MatchCase": "대소문자 구분",
+  "Search_WholeWord": "단어 단위 검색",
+  "Search_Close": "닫기 (Esc)",
+  "Search_NotFound": "찾을 수 없음",
+  "Search_MatchCount": "{0}개 중 {1}번째"
 }

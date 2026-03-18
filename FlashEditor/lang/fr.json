@@ -36,5 +36,13 @@
   "Error_IconLoad": "Échec du chargement du fichier d'icône",
   "Error_BrowserOpen": "Impossible d'ouvrir le navigateur",
   "Error_LinkOpen": "Impossible d'ouvrir le lien",
-  "Error_ThemeDetect": "Impossible de détecter le thème système"
+  "Error_ThemeDetect": "Impossible de détecter le thème système",
+  "Menu_Find": "Rechercher",
+  "Search_Prev": "Précédent (Maj+Entrée)",
+  "Search_Next": "Suivant (Entrée)",
+  "Search_MatchCase": "Respecter la casse",
+  "Search_WholeWord": "Mot entier",
+  "Search_Close": "Fermer (Échap)",
+  "Search_NotFound": "Introuvable",
+  "Search_MatchCount": "{1} sur {0}"
 }

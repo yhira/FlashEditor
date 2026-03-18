@@ -36,5 +36,13 @@
   "Error_IconLoad": "Error al cargar el archivo de icono",
   "Error_BrowserOpen": "Error al abrir el navegador",
   "Error_LinkOpen": "No se pudo abrir el enlace",
-  "Error_ThemeDetect": "Error al detectar el tema del sistema"
+  "Error_ThemeDetect": "Error al detectar el tema del sistema",
+  "Menu_Find": "Buscar",
+  "Search_Prev": "Anterior (Mayús+Intro)",
+  "Search_Next": "Siguiente (Intro)",
+  "Search_MatchCase": "Coincidir mayúsculas/minúsculas",
+  "Search_WholeWord": "Palabra completa",
+  "Search_Close": "Cerrar (Esc)",
+  "Search_NotFound": "No encontrado",
+  "Search_MatchCount": "{1} de {0}"
 }

@@ -36,5 +36,13 @@
   "Error_IconLoad": "Symboldatei konnte nicht geladen werden",
   "Error_BrowserOpen": "Browser konnte nicht geöffnet werden",
   "Error_LinkOpen": "Link konnte nicht geöffnet werden",
-  "Error_ThemeDetect": "Systemdesign konnte nicht erkannt werden"
+  "Error_ThemeDetect": "Systemdesign konnte nicht erkannt werden",
+  "Menu_Find": "Suchen",
+  "Search_Prev": "Vorheriges (Umschalt+Eingabe)",
+  "Search_Next": "Nächstes (Eingabe)",
+  "Search_MatchCase": "Groß-/Kleinschreibung beachten",
+  "Search_WholeWord": "Ganzes Wort suchen",
+  "Search_Close": "Schließen (Esc)",
+  "Search_NotFound": "Nicht gefunden",
+  "Search_MatchCount": "{1} von {0}"
 }

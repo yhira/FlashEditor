@@ -13,6 +13,18 @@ public partial class MainForm : Form
     private readonly Timer _tooltipTimer = new();
     private readonly ToolTip _customToolTip = new();
     private ToolStripItem? _hoveredItem;
+    
+    // Search Bar Components
+    private Panel pnlSearchBar = null!;
+    private ToolStrip tsSearch = null!;
+    private ToolStripTextBox txtSearchInput = null!;
+    private ToolStripButton btnFindPrev = null!;
+    private ToolStripButton btnFindNext = null!;
+    private ToolStripButton btnMatchCase = null!;
+    private ToolStripButton btnWholeWord = null!;
+    private ToolStripLabel lblSearchMessage = null!;
+    private ToolStripButton btnCloseSearch = null!;
+
     // Win32 API: RichTextBox 内部のテキスト描画領域を設定するために使用
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref RECT lParam);
@@ -49,6 +61,7 @@ public partial class MainForm : Form
         this.Opacity = 0;
 
         InitializeComponent();
+        InitializeSearchBar();
         
         // エディターの枠線を消してマージン領域をシームレスにする
         txtMain.BorderStyle = BorderStyle.None;
@@ -104,6 +117,7 @@ public partial class MainForm : Form
         tsbPaste.Click += (s, e) => PastePlainText();
         tsbDelete.Click += (s, e) => DeleteSelectedText();
         
+        tsbFind.Click += (s, e) => ShowSearchBar();
         tsbGoogleSearch.Click += TsbGoogleSearch_Click;
         tsbSettings.Click += TsbSettings_Click;
         tsbAbout.Click += TsbAbout_Click;
@@ -178,6 +192,9 @@ public partial class MainForm : Form
         tsbDelete.Text = LocalizationManager.GetString("Menu_Delete") ?? "Delete";
         tsbDelete.ToolTipText = (LocalizationManager.GetString("Menu_Delete") ?? "Delete") + " (Delete)";
 
+        tsbFind.Text = LocalizationManager.GetString("Menu_Find") ?? "Find";
+        tsbFind.ToolTipText = (LocalizationManager.GetString("Menu_Find") ?? "Find") + " (Ctrl+F)";
+
         tsbGoogleSearch.Text = LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google";
         tsbGoogleSearch.ToolTipText = LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google";
 
@@ -186,6 +203,15 @@ public partial class MainForm : Form
 
         tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "About";
         tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "About";
+
+        if (btnFindPrev != null)
+        {
+            btnFindPrev.ToolTipText = LocalizationManager.GetString("Search_Prev") ?? "前の候補 (Shift+Enter)";
+            btnFindNext.ToolTipText = LocalizationManager.GetString("Search_Next") ?? "次の候補 (Enter)";
+            btnMatchCase.ToolTipText = LocalizationManager.GetString("Search_MatchCase") ?? "大文字と小文字を区別する";
+            btnWholeWord.ToolTipText = LocalizationManager.GetString("Search_WholeWord") ?? "単語単位で検索する";
+            btnCloseSearch.ToolTipText = LocalizationManager.GetString("Search_Close") ?? "閉じる (Esc)";
+        }
 
         BuildContextMenu();
     }
@@ -222,9 +248,16 @@ public partial class MainForm : Form
         tsbCopy.Image?.Dispose();
         tsbPaste.Image?.Dispose();
         tsbDelete.Image?.Dispose();
+        tsbFind.Image?.Dispose();
         tsbGoogleSearch.Image?.Dispose();
         tsbSettings.Image?.Dispose();
         tsbAbout.Image?.Dispose();
+
+        btnFindPrev.Image?.Dispose();
+        btnFindNext.Image?.Dispose();
+        btnMatchCase.Image?.Dispose();
+        btnWholeWord.Image?.Dispose();
+        btnCloseSearch.Image?.Dispose();
 
         // === 新しいメモ (紙 + 「+」マーク) ===
         tsbNewMemo.Image = CreateIcon(g => {
@@ -308,6 +341,53 @@ public partial class MainForm : Form
             using var pen = new Pen(outline, sw);
             g.DrawLine(pen, 4, 4, 16, 16);
             g.DrawLine(pen, 16, 4, 4, 16);
+        });
+
+        // === 検索 (虫眼鏡) ===
+        tsbFind.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, sw);
+            g.DrawEllipse(pen, 4, 4, 8, 8);
+            g.DrawLine(pen, 10, 10, 15, 15);
+        });
+
+        // === 検索パネル用アイコン（20x20ネイティブサイズで生成、スケーリング不要） ===
+        btnFindPrev.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, sw);
+            g.DrawLine(pen, 10, 4, 4, 10);
+            g.DrawLine(pen, 10, 4, 16, 10);
+            g.DrawLine(pen, 10, 4, 10, 16);
+        });
+        btnFindNext.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, sw);
+            g.DrawLine(pen, 10, 16, 4, 10);
+            g.DrawLine(pen, 10, 16, 16, 10);
+            g.DrawLine(pen, 10, 16, 10, 4);
+        });
+        // 大文字/小文字アイコン: "A" と "a" をペン描画
+        btnMatchCase.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, 1.8f);
+            // 大文字 A（左半分）: 三角形+横棒
+            g.DrawLine(pen, 1, 18, 6, 2);
+            g.DrawLine(pen, 6, 2, 11, 18);
+            g.DrawLine(pen, 3, 12, 9, 12);
+            // 小文字 a（右半分）: 丸+縦線
+            g.DrawArc(pen, 11, 9, 7, 9, 0, 360);
+            g.DrawLine(pen, 18, 9, 18, 18);
+        });
+        // 単語単位アイコン: "" をペン描画
+        btnWholeWord.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, 2.0f);
+            // 左の " 記号
+            g.DrawLine(pen, 4, 4, 3, 11);
+            g.DrawLine(pen, 8, 4, 7, 11);
+            // 右の " 記号
+            g.DrawLine(pen, 12, 4, 11, 11);
+            g.DrawLine(pen, 16, 4, 15, 11);
+        });
+        btnCloseSearch.Image = CreateIcon(g => {
+            using var pen = new Pen(outline, sw);
+            g.DrawLine(pen, 5, 5, 15, 15);
+            g.DrawLine(pen, 15, 5, 5, 15);
         });
 
         // === Googleで検索 (Googleロゴ - 4色の「G」) ===
@@ -421,8 +501,8 @@ public partial class MainForm : Form
         var bmp = new Bitmap(size, size);
         using var g = Graphics.FromImage(bmp);
         g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-        // 20x20座標のアイコンをサイズに合わせてスケーリング
-        if (size > 20)
+        // 20x20座標のアイコンをサイズに合わせてスケーリング（拡大・縮小の両方に対応）
+        if (size != 20)
         {
             float scale = size / 20f;
             g.ScaleTransform(scale, scale);
@@ -506,7 +586,14 @@ public partial class MainForm : Form
     private void ToolStripItem_MouseLeave(object? sender, EventArgs e)
     {
         _tooltipTimer.Stop();
-        _customToolTip.Hide(toolStrip1);
+        if (sender is ToolStripItem item && item.Owner != null)
+        {
+            _customToolTip.Hide(item.Owner);
+        }
+        else
+        {
+            _customToolTip.Hide(toolStrip1);
+        }
         _hoveredItem = null;
     }
 
@@ -515,9 +602,10 @@ public partial class MainForm : Form
         _tooltipTimer.Stop();
         if (_hoveredItem != null)
         {
+            var owner = _hoveredItem.Owner ?? toolStrip1;
             // ToolStrip内での位置の下に表示
             Point pt = new Point(_hoveredItem.Bounds.Left, _hoveredItem.Bounds.Bottom + 4);
-            _customToolTip.Show(_hoveredItem.ToolTipText, toolStrip1, pt);
+            _customToolTip.Show(_hoveredItem.ToolTipText, owner, pt);
         }
     }
 
@@ -806,6 +894,203 @@ public partial class MainForm : Form
     {
         tsbUndo.Enabled = txtMain.CanUndo;
         tsbRedo.Enabled = txtMain.CanRedo;
+    }
+
+    // --- Search Bar Methods ---
+    private void InitializeSearchBar()
+    {
+        pnlSearchBar = new Panel { Dock = DockStyle.Bottom, Visible = false };
+        tsSearch = new ToolStrip { GripStyle = ToolStripGripStyle.Hidden, RenderMode = ToolStripRenderMode.Professional, Renderer = new CustomToolStripRenderer(), ImageScalingSize = new Size(20, 20) };
+        
+        // Disable default tooltips in favor of our customized _tooltipTimer just like toolStrip1
+        tsSearch.ShowItemToolTips = false;
+
+        txtSearchInput = new ToolStripTextBox { AutoSize = false, Width = 200, BorderStyle = BorderStyle.FixedSingle, Margin = new Padding(8, 4, 4, 4) };
+        txtSearchInput.KeyDown += TxtSearchInput_KeyDown;
+        txtSearchInput.TextChanged += TxtSearchInput_TextChanged;
+
+        btnFindPrev = new ToolStripButton { DisplayStyle = ToolStripItemDisplayStyle.Image, ToolTipText = LocalizationManager.GetString("Search_Prev") ?? "前の候補 (Shift+Enter)" };
+        btnFindNext = new ToolStripButton { DisplayStyle = ToolStripItemDisplayStyle.Image, ToolTipText = LocalizationManager.GetString("Search_Next") ?? "次の候補 (Enter)" };
+        btnMatchCase = new ToolStripButton { DisplayStyle = ToolStripItemDisplayStyle.Image, ToolTipText = LocalizationManager.GetString("Search_MatchCase") ?? "大文字と小文字を区別する", CheckOnClick = true };
+        btnWholeWord = new ToolStripButton { DisplayStyle = ToolStripItemDisplayStyle.Image, ToolTipText = LocalizationManager.GetString("Search_WholeWord") ?? "単語単位で検索する", CheckOnClick = true };
+        lblSearchMessage = new ToolStripLabel { Margin = new Padding(10, 0, 0, 0) };
+        btnCloseSearch = new ToolStripButton { DisplayStyle = ToolStripItemDisplayStyle.Image, Alignment = ToolStripItemAlignment.Right, ToolTipText = LocalizationManager.GetString("Search_Close") ?? "閉じる (Esc)" };
+
+        btnFindPrev.Click += (s, e) => FindText(false);
+        btnFindNext.Click += (s, e) => FindText(true);
+        btnMatchCase.CheckedChanged += (s, e) => FindText(true);
+        btnWholeWord.CheckedChanged += (s, e) => FindText(true);
+        btnCloseSearch.Click += (s, e) => HideSearchBar();
+
+        tsSearch.Items.AddRange(new ToolStripItem[] {
+            txtSearchInput,
+            btnFindPrev,
+            btnFindNext,
+            new ToolStripSeparator(),
+            btnMatchCase,
+            btnWholeWord,
+            lblSearchMessage,
+            btnCloseSearch
+        });
+        
+        pnlSearchBar.Height = tsSearch.PreferredSize.Height > 28 ? tsSearch.PreferredSize.Height : 32;
+
+        // Attach custom tooltip logic
+        foreach (ToolStripItem item in tsSearch.Items)
+        {
+            if (item is ToolStripTextBox) continue;
+            item.MouseEnter += ToolStripItem_MouseEnter;
+            item.MouseLeave += ToolStripItem_MouseLeave;
+            item.MouseDown += (s, e) => {
+                _tooltipTimer.Stop();
+                _customToolTip.Hide(tsSearch);
+            };
+        }
+
+        pnlSearchBar.Controls.Add(tsSearch);
+        this.Controls.Add(pnlSearchBar);
+    }
+
+    private void TxtSearchInput_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Enter)
+        {
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+            FindText(!e.Shift);
+        }
+    }
+
+    private void TxtSearchInput_TextChanged(object? sender, EventArgs e)
+    {
+        FindText(true, true);
+    }
+
+    private void FindText(bool searchForward, bool incremental = false)
+    {
+        lblSearchMessage.Text = "";
+
+        if (string.IsNullOrEmpty(txtSearchInput.Text)) return;
+
+        string searchText = txtSearchInput.Text;
+        RichTextBoxFinds options = RichTextBoxFinds.None;
+        if (btnMatchCase.Checked) options |= RichTextBoxFinds.MatchCase;
+        if (btnWholeWord.Checked) options |= RichTextBoxFinds.WholeWord;
+        if (!searchForward) options |= RichTextBoxFinds.Reverse;
+
+        int startIndex = 0;
+        int endIndex = txtMain.TextLength;
+        
+        if (incremental)
+        {
+            // インクリメンタル検索時は、現在の選択範囲の先頭から開始して飛び跳ねを防ぐ
+            startIndex = txtMain.SelectionStart;
+        }
+        else
+        {
+            if (searchForward)
+                startIndex = txtMain.SelectionStart + txtMain.SelectionLength;
+            else
+                endIndex = txtMain.SelectionStart;
+        }
+
+        int index = -1;
+        if (searchForward)
+        {
+            index = txtMain.Find(searchText, startIndex, endIndex, options);
+            if (index == -1 && !incremental) // 見つからなかったら先頭に戻って検索
+                index = txtMain.Find(searchText, 0, txtMain.TextLength, options);
+        }
+        else
+        {
+            index = txtMain.Find(searchText, 0, endIndex, options);
+            if (index == -1) // 見つからなかったら末尾から検索
+                index = txtMain.Find(searchText, startIndex, txtMain.TextLength, options);
+        }
+
+        if (index != -1)
+        {
+            txtMain.Select(index, searchText.Length);
+            txtMain.ScrollToCaret();
+
+            // 全マッチ件数と現在位置を計算して多言語対応で表示
+            var (totalCount, currentIndex) = CountAllMatches(searchText, index);
+            string fmt = LocalizationManager.GetString("Search_MatchCount") ?? "{0} 件中 {1} 件目";
+            lblSearchMessage.Text = string.Format(fmt, totalCount, currentIndex);
+            lblSearchMessage.ForeColor = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark
+                ? Color.FromArgb(180, 180, 180) : Color.FromArgb(80, 80, 80);
+        }
+        else
+        {
+            lblSearchMessage.Text = LocalizationManager.GetString("Search_NotFound") ?? "見つかりません";
+            lblSearchMessage.ForeColor = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark ? Color.LightCoral : Color.Red;
+        }
+    }
+
+    // テキスト全体を走査して総マッチ数と、現在位置が何番目かを返す
+    private (int totalCount, int currentIndex) CountAllMatches(string searchText, int currentPos)
+    {
+        // 検索オプションを構築（方向は常に前方で全走査）
+        RichTextBoxFinds options = RichTextBoxFinds.None;
+        if (btnMatchCase.Checked) options |= RichTextBoxFinds.MatchCase;
+        if (btnWholeWord.Checked) options |= RichTextBoxFinds.WholeWord;
+
+        int total = 0;
+        int currentIndex = 0;
+        int pos = 0;
+
+        // 先頭から末尾まで繰り返し検索してカウント
+        while (pos < txtMain.TextLength)
+        {
+            int found = txtMain.Find(searchText, pos, txtMain.TextLength, options);
+            if (found == -1) break;
+            total++;
+            // 現在選択中の位置と一致したら何番目かを記録
+            if (found == currentPos) currentIndex = total;
+            pos = found + searchText.Length;
+        }
+
+        // 選択位置を元に戻す（Find呼び出しで選択がずれるので）
+        txtMain.Select(currentPos, searchText.Length);
+
+        return (total, currentIndex);
+    }
+
+    private void ShowSearchBar()
+    {
+        pnlSearchBar.Visible = true;
+        pnlSearchBar.BringToFront(); // RichTextBoxの上に持ってくる
+        
+        if (!string.IsNullOrEmpty(txtMain.SelectedText) && !txtMain.SelectedText.Contains('\n'))
+        {
+            txtSearchInput.Text = txtMain.SelectedText;
+        }
+        txtSearchInput.Focus();
+        txtSearchInput.SelectAll();
+    }
+
+    private void HideSearchBar()
+    {
+        if (pnlSearchBar != null && pnlSearchBar.Visible)
+        {
+            pnlSearchBar.Visible = false;
+            txtMain.Focus();
+        }
+    }
+
+    protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+    {
+        if (keyData == (Keys.Control | Keys.F))
+        {
+            ShowSearchBar();
+            return true;
+        }
+        if (keyData == Keys.Escape && pnlSearchBar != null && pnlSearchBar.Visible)
+        {
+            HideSearchBar();
+            return true;
+        }
+        return base.ProcessCmdKey(ref msg, keyData);
     }
 
     private void TxtMain_KeyDown(object? sender, KeyEventArgs e)
