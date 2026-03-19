@@ -15,7 +15,7 @@ public partial class AboutDialog : Form
         var mode = ThemeManager.CurrentTheme;
         ThemeManager.ApplyTheme(this, mode);
         
-        bool isDark = (mode == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
         Color linkColor = isDark ? Color.LightSkyBlue : Color.Blue;
         lnkUrl.LinkColor = linkColor;
         lnkUrl.ActiveLinkColor = linkColor;
@@ -36,10 +36,7 @@ public partial class AboutDialog : Form
 
     private void LnkUrl_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
     {
-        try
-        {
-            Process.Start(new ProcessStartInfo("https://nelab.jp/") { UseShellExecute = true });
-        }
-        catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_LinkOpen") ?? "Could not open link", ex); }
+        // 共通ヘルパーでURLを開く
+        MainForm.OpenUrl("https://nelab.jp/");
     }
 }

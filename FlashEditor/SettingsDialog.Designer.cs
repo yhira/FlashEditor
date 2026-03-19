@@ -11,6 +11,11 @@ partial class SettingsDialog
         {
             components.Dispose();
         }
+        // プレビュー用GDIフォントを明示解放（リーク防止）
+        if (disposing)
+        {
+            _previewFont?.Dispose();
+        }
         base.Dispose(disposing);
     }
 

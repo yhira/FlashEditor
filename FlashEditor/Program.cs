@@ -27,18 +27,22 @@ static class Program
         if (!createdNew)
         {
             // 既に起動中のプロセスを探して最前面に表示する
-            var currentProcess = Process.GetCurrentProcess();
+            using var currentProcess = Process.GetCurrentProcess();
             foreach (var process in Process.GetProcessesByName(currentProcess.ProcessName))
             {
-                if (process.Id != currentProcess.Id && process.MainWindowHandle != IntPtr.Zero)
+                // Process オブジェクトは IDisposable なので using で確実に解放
+                using (process)
                 {
-                    IntPtr hWnd = process.MainWindowHandle;
-                    if (IsIconic(hWnd))
+                    if (process.Id != currentProcess.Id && process.MainWindowHandle != IntPtr.Zero)
                     {
-                        ShowWindow(hWnd, SW_RESTORE);
+                        IntPtr hWnd = process.MainWindowHandle;
+                        if (IsIconic(hWnd))
+                        {
+                            ShowWindow(hWnd, SW_RESTORE);
+                        }
+                        SetForegroundWindow(hWnd);
+                        break;
                     }
-                    SetForegroundWindow(hWnd);
-                    break;
                 }
             }
             return;

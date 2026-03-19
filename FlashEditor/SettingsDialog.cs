@@ -76,7 +76,7 @@ public partial class SettingsDialog : Form
         if (cmb == null) return;
 
         // 現在のテーマに応じた色を決定
-        bool isDark = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark;
+        bool isDark = ThemeManager.IsDark;
         // 選択中の項目の背景色
         Color selectedBg = isDark ? Color.FromArgb(70, 70, 80) : Color.FromArgb(200, 220, 240);
         // 通常状態の背景色

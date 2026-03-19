@@ -13,6 +13,8 @@ public partial class MainForm : Form
     private readonly Timer _tooltipTimer = new();
     private readonly ToolTip _customToolTip = new();
     private ToolStripItem? _hoveredItem;
+    // 進行中の非同期保存タスクを追跡（FormClosing時の競合防止用）
+    private Task? _lastSaveTask;
     
     // Search Bar Components
     private Panel pnlSearchBar = null!;
@@ -82,17 +84,8 @@ public partial class MainForm : Form
         _tooltipTimer.Interval = 500;
         _tooltipTimer.Tick += TooltipTimer_Tick;
 
-        foreach (ToolStripItem item in toolStrip1.Items)
-        {
-            item.MouseEnter += ToolStripItem_MouseEnter;
-            item.MouseLeave += ToolStripItem_MouseLeave;
-            
-            // MouseDownでToolTipを消す（クリック後に出残りするのを防ぐ）
-            item.MouseDown += (s, e) => {
-                _tooltipTimer.Stop();
-                _customToolTip.Hide(toolStrip1);
-            };
-        }
+        // ToolStripのアイテムにカスタムツールチップのイベントを一括登録
+        AttachTooltipEvents(toolStrip1);
 
         // ToolStripの上下パディングを追加してアイコンを大きく見せる
         toolStrip1.Padding = new Padding(4, 2, 4, 2);
@@ -148,6 +141,9 @@ public partial class MainForm : Form
     // コンテキストメニューを再構築する（言語変更時などにも呼ぶ）
     private void BuildContextMenu()
     {
+        // 古いコンテキストメニューを解放（GDIハンドルリーク防止）
+        txtMain.ContextMenuStrip?.Dispose();
+
         var contextMenu = new ContextMenuStrip();
         // ToolStrip と同じカスタムレンダラーを適用してダークテーマに対応
         contextMenu.Renderer = new CustomToolStripRenderer();
@@ -165,52 +161,38 @@ public partial class MainForm : Form
         txtMain.ContextMenuStrip = contextMenu;
     }
 
+    // ToolStripButton のテキストとツールチップを一括設定するヘルパー
+    private static void SetButtonText(ToolStripItem item, string key, string fallback, string? shortcut = null)
+    {
+        string label = LocalizationManager.GetString(key) ?? fallback;
+        item.Text = label;
+        item.ToolTipText = shortcut != null ? $"{label} ({shortcut})" : label;
+    }
+
     // UIのテキストを現在の言語に更新する
     private void ApplyLanguage()
     {
-        tsbNewMemo.Text = LocalizationManager.GetString("Menu_NewMemo") ?? "New Memo";
-        tsbNewMemo.ToolTipText = LocalizationManager.GetString("Menu_NewMemo") ?? "New Memo";
+        SetButtonText(tsbNewMemo,      "Menu_NewMemo",       "New Memo");
+        SetButtonText(tsbTopMost,      "Menu_TopMost",       "Always on Top");
+        SetButtonText(tsbUndo,         "Menu_Undo",          "Undo",              "Ctrl+Z");
+        SetButtonText(tsbRedo,         "Menu_Redo",          "Redo",              "Ctrl+Y");
+        SetButtonText(tsbCut,          "Menu_Cut",           "Cut",               "Ctrl+X");
+        SetButtonText(tsbCopy,         "Menu_Copy",          "Copy",              "Ctrl+C");
+        SetButtonText(tsbPaste,        "Menu_Paste",         "Paste",             "Ctrl+V");
+        SetButtonText(tsbDelete,       "Menu_Delete",        "Delete",            "Delete");
+        SetButtonText(tsbFind,         "Menu_Find",          "Find",              "Ctrl+F");
+        SetButtonText(tsbGoogleSearch, "Menu_GoogleSearch",  "Search with Google");
+        SetButtonText(tsbSettings,     "Menu_Settings",      "Settings");
+        SetButtonText(tsbAbout,        "Menu_About",         "About");
 
-        tsbTopMost.Text = LocalizationManager.GetString("Menu_TopMost") ?? "Always on Top";
-        tsbTopMost.ToolTipText = LocalizationManager.GetString("Menu_TopMost") ?? "Always on Top";
-
-        tsbUndo.Text = LocalizationManager.GetString("Menu_Undo") ?? "Undo";
-        tsbUndo.ToolTipText = (LocalizationManager.GetString("Menu_Undo") ?? "Undo") + " (Ctrl+Z)";
-
-        tsbRedo.Text = LocalizationManager.GetString("Menu_Redo") ?? "Redo";
-        tsbRedo.ToolTipText = (LocalizationManager.GetString("Menu_Redo") ?? "Redo") + " (Ctrl+Y)";
-
-        tsbCut.Text = LocalizationManager.GetString("Menu_Cut") ?? "Cut";
-        tsbCut.ToolTipText = (LocalizationManager.GetString("Menu_Cut") ?? "Cut") + " (Ctrl+X)";
-
-        tsbCopy.Text = LocalizationManager.GetString("Menu_Copy") ?? "Copy";
-        tsbCopy.ToolTipText = (LocalizationManager.GetString("Menu_Copy") ?? "Copy") + " (Ctrl+C)";
-
-        tsbPaste.Text = LocalizationManager.GetString("Menu_Paste") ?? "Paste";
-        tsbPaste.ToolTipText = (LocalizationManager.GetString("Menu_Paste") ?? "Paste") + " (Ctrl+V)";
-
-        tsbDelete.Text = LocalizationManager.GetString("Menu_Delete") ?? "Delete";
-        tsbDelete.ToolTipText = (LocalizationManager.GetString("Menu_Delete") ?? "Delete") + " (Delete)";
-
-        tsbFind.Text = LocalizationManager.GetString("Menu_Find") ?? "Find";
-        tsbFind.ToolTipText = (LocalizationManager.GetString("Menu_Find") ?? "Find") + " (Ctrl+F)";
-
-        tsbGoogleSearch.Text = LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google";
-        tsbGoogleSearch.ToolTipText = LocalizationManager.GetString("Menu_GoogleSearch") ?? "Search with Google";
-
-        tsbSettings.Text = LocalizationManager.GetString("Menu_Settings") ?? "Settings";
-        tsbSettings.ToolTipText = LocalizationManager.GetString("Menu_Settings") ?? "Settings";
-
-        tsbAbout.Text = LocalizationManager.GetString("Menu_About") ?? "About";
-        tsbAbout.ToolTipText = LocalizationManager.GetString("Menu_About") ?? "About";
-
+        // 検索バーのツールチップ
         if (btnFindPrev != null)
         {
-            btnFindPrev.ToolTipText = LocalizationManager.GetString("Search_Prev") ?? "前の候補 (Shift+Enter)";
-            btnFindNext.ToolTipText = LocalizationManager.GetString("Search_Next") ?? "次の候補 (Enter)";
-            btnMatchCase.ToolTipText = LocalizationManager.GetString("Search_MatchCase") ?? "大文字と小文字を区別する";
-            btnWholeWord.ToolTipText = LocalizationManager.GetString("Search_WholeWord") ?? "単語単位で検索する";
-            btnCloseSearch.ToolTipText = LocalizationManager.GetString("Search_Close") ?? "閉じる (Esc)";
+            btnFindPrev.ToolTipText   = LocalizationManager.GetString("Search_Prev")      ?? "前の候補 (Shift+Enter)";
+            btnFindNext.ToolTipText   = LocalizationManager.GetString("Search_Next")      ?? "次の候補 (Enter)";
+            btnMatchCase.ToolTipText  = LocalizationManager.GetString("Search_MatchCase") ?? "大文字と小文字を区別する";
+            btnWholeWord.ToolTipText  = LocalizationManager.GetString("Search_WholeWord") ?? "単語単位で検索する";
+            btnCloseSearch.ToolTipText = LocalizationManager.GetString("Search_Close")    ?? "閉じる (Esc)";
         }
 
         BuildContextMenu();
@@ -226,11 +208,28 @@ public partial class MainForm : Form
         GenerateIcons(mode);
     }
 
+    // アイコン描画色の定数（ToolStrip用モノラインアイコン）
+    private static readonly Color DarkOutline = Color.FromArgb(176, 176, 176);
+    private static readonly Color LightOutline = Color.FromArgb(80, 80, 80);
+    // コンテキストメニュー用アイコン色
+    private static readonly Color DarkContextMenuIconColor = Color.FromArgb(180, 180, 180);
+    private static readonly Color LightContextMenuIconColor = Color.FromArgb(100, 100, 100);
+    // コンテキストメニュー用ペン幅
+    private const float ContextMenuPenWidth = 1.2f;
+
     // テーマに応じたアウトライン色を取得する（モノラインアイコン用）
     private static Color GetOutlineColor(ThemeManager.ThemeMode mode)
     {
-        bool isDark = (mode == ThemeManager.ThemeMode.Dark);
-        return isDark ? Color.FromArgb(176, 176, 176) : Color.FromArgb(80, 80, 80);
+        return (mode == ThemeManager.ThemeMode.Dark) ? DarkOutline : LightOutline;
+    }
+
+    // 全ToolStripアイテムの古いアイコンを一括解放してGDIリークを防ぐ
+    private static void DisposeAllImages(params ToolStripItem[] items)
+    {
+        foreach (var item in items)
+        {
+            item.Image?.Dispose();
+        }
     }
 
     private void GenerateIcons(ThemeManager.ThemeMode mode = ThemeManager.ThemeMode.Light)
@@ -240,24 +239,12 @@ public partial class MainForm : Form
         // 統一ストローク幅
         const float sw = 1.5f;
 
-        // 古いアイコンリソースをすべて解放してGDIリークを防ぐ
-        tsbNewMemo.Image?.Dispose();
-        tsbUndo.Image?.Dispose();
-        tsbRedo.Image?.Dispose();
-        tsbCut.Image?.Dispose();
-        tsbCopy.Image?.Dispose();
-        tsbPaste.Image?.Dispose();
-        tsbDelete.Image?.Dispose();
-        tsbFind.Image?.Dispose();
-        tsbGoogleSearch.Image?.Dispose();
-        tsbSettings.Image?.Dispose();
-        tsbAbout.Image?.Dispose();
-
-        btnFindPrev.Image?.Dispose();
-        btnFindNext.Image?.Dispose();
-        btnMatchCase.Image?.Dispose();
-        btnWholeWord.Image?.Dispose();
-        btnCloseSearch.Image?.Dispose();
+        // 古いアイコンリソースをすべて一括解放
+        DisposeAllImages(
+            tsbNewMemo, tsbUndo, tsbRedo, tsbCut, tsbCopy, tsbPaste, tsbDelete,
+            tsbFind, tsbGoogleSearch, tsbSettings, tsbAbout,
+            btnFindPrev, btnFindNext, btnMatchCase, btnWholeWord, btnCloseSearch
+        );
 
         // === 新しいメモ (紙 + 「+」マーク) ===
         tsbNewMemo.Image = CreateIcon(g => {
@@ -391,23 +378,7 @@ public partial class MainForm : Form
         });
 
         // === Googleで検索 (Googleロゴ - 4色の「G」) ===
-        tsbGoogleSearch.Image = CreateIcon(g => {
-            Color blue   = Color.FromArgb(66, 133, 244);
-            Color red    = Color.FromArgb(234, 67, 53);
-            Color yellow = Color.FromArgb(251, 188, 5);
-            Color green  = Color.FromArgb(52, 168, 83);
-            using var penBlue   = new Pen(blue, 2.5f);
-            using var penRed    = new Pen(red, 2.5f);
-            using var penYellow = new Pen(yellow, 2.5f);
-            using var penGreen  = new Pen(green, 2.5f);
-            var rect = new Rectangle(2, 2, 16, 16);
-            g.DrawArc(penBlue,   rect, 300, 75);
-            g.DrawArc(penRed,    rect, 225, 75);
-            g.DrawArc(penYellow, rect, 150, 75);
-            g.DrawArc(penGreen,  rect, 75, 75);
-            // 「G」の横棒（青）
-            g.DrawLine(penBlue, 10, 10, 17, 10);
-        });
+        tsbGoogleSearch.Image = CreateIcon(g => DrawGoogleLogo(g, 2.5f, new Rectangle(2, 2, 16, 16), 10, 10, 17));
 
         // === 設定 (歯車) ===
         tsbSettings.Image = CreateIcon(g => {
@@ -516,14 +487,13 @@ public partial class MainForm : Form
     // コンテキストメニュー用アイコンのテーマ対応色を取得
     private static Color GetContextMenuIconColor()
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
-        return isDark ? Color.FromArgb(180, 180, 180) : Color.FromArgb(100, 100, 100);
+        return ThemeManager.IsDark ? DarkContextMenuIconColor : LightContextMenuIconColor;
     }
 
     // 切り取り (はさみ)
     private void DrawCutIcon(Graphics g)
     {
-        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), ContextMenuPenWidth);
         g.DrawEllipse(pen, 1, 9, 4, 4);
         g.DrawEllipse(pen, 10, 9, 4, 4);
         g.DrawLine(pen, 3, 10, 11, 2);
@@ -533,7 +503,7 @@ public partial class MainForm : Form
     // コピー (2枚の四角)
     private void DrawCopyIcon(Graphics g)
     {
-        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), ContextMenuPenWidth);
         g.DrawRectangle(pen, 5, 1, 8, 10);
         g.DrawRectangle(pen, 2, 4, 8, 10);
     }
@@ -541,7 +511,7 @@ public partial class MainForm : Form
     // 貼り付け (クリップボード)
     private void DrawPasteIcon(Graphics g)
     {
-        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), ContextMenuPenWidth);
         g.DrawRectangle(pen, 2, 3, 11, 12);
         g.DrawRectangle(pen, 5, 1, 5, 3);
         g.DrawLine(pen, 5, 8, 11, 8);
@@ -551,24 +521,67 @@ public partial class MainForm : Form
     // 削除 (× 印)
     private void DrawDeleteIcon(Graphics g)
     {
-        using var pen = new Pen(GetContextMenuIconColor(), 1.2f);
+        using var pen = new Pen(GetContextMenuIconColor(), ContextMenuPenWidth);
         g.DrawLine(pen, 3, 3, 13, 13);
         g.DrawLine(pen, 13, 3, 3, 13);
     }
 
-    // Googleで検索 (Googleロゴ)
+    // Googleで検索 (Googleロゴ) - 共通メソッドを使用
     private void DrawSearchIcon(Graphics g)
     {
-        using var penB = new Pen(Color.FromArgb(66, 133, 244), 1.8f);
-        using var penR = new Pen(Color.FromArgb(234, 67, 53), 1.8f);
-        using var penY = new Pen(Color.FromArgb(251, 188, 5), 1.8f);
-        using var penG = new Pen(Color.FromArgb(52, 168, 83), 1.8f);
-        var rect = new Rectangle(1, 1, 13, 13);
-        g.DrawArc(penB, rect, 300, 75);
-        g.DrawArc(penR, rect, 225, 75);
-        g.DrawArc(penY, rect, 150, 75);
-        g.DrawArc(penG, rect, 75, 75);
-        g.DrawLine(penB, 8, 7, 14, 7);
+        DrawGoogleLogo(g, 1.8f, new Rectangle(1, 1, 13, 13), 8, 7, 14);
+    }
+
+    // Google「G」ロゴを描画する共通メソッド（ToolStrip/コンテキストメニュー共用）
+    private static void DrawGoogleLogo(Graphics g, float penWidth, Rectangle arcRect, float barX1, float barY, float barX2)
+    {
+        Color blue   = Color.FromArgb(66, 133, 244);
+        Color red    = Color.FromArgb(234, 67, 53);
+        Color yellow = Color.FromArgb(251, 188, 5);
+        Color green  = Color.FromArgb(52, 168, 83);
+        using var penBlue   = new Pen(blue, penWidth);
+        using var penRed    = new Pen(red, penWidth);
+        using var penYellow = new Pen(yellow, penWidth);
+        using var penGreen  = new Pen(green, penWidth);
+        g.DrawArc(penBlue,   arcRect, 300, 75);
+        g.DrawArc(penRed,    arcRect, 225, 75);
+        g.DrawArc(penYellow, arcRect, 150, 75);
+        g.DrawArc(penGreen,  arcRect, 75, 75);
+        // 「G」の横棒（青）
+        g.DrawLine(penBlue, barX1, barY, barX2, barY);
+    }
+
+    // --- ヘルパーメソッド ---
+
+    // URLをデフォルトブラウザで安全に開く共通ヘルパー
+    internal static void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            AppData.ReportError(
+                LocalizationManager.GetString("Error_LinkOpen") ?? "Could not open link", ex);
+        }
+    }
+
+    // ToolStripのアイテムにカスタムツールチップのイベントを一括登録するヘルパー
+    private void AttachTooltipEvents(ToolStrip strip)
+    {
+        foreach (ToolStripItem item in strip.Items)
+        {
+            // TextBoxはツールチップ不要
+            if (item is ToolStripTextBox) continue;
+            item.MouseEnter += ToolStripItem_MouseEnter;
+            item.MouseLeave += ToolStripItem_MouseLeave;
+            // MouseDownでToolTipを消す（クリック後に出残りするのを防ぐ）
+            item.MouseDown += (s, e) => {
+                _tooltipTimer.Stop();
+                _customToolTip.Hide(strip);
+            };
+        }
     }
 
     // --- カスタムツールチップのイベント処理 ---
@@ -617,7 +630,7 @@ public partial class MainForm : Form
 
     private void CustomToolTip_Draw(object? sender, DrawToolTipEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
 
         Color backColor = isDark ? Color.FromArgb(43, 43, 43) : SystemColors.Info;
         Color foreColor = isDark ? Color.WhiteSmoke : SystemColors.InfoText;
@@ -718,6 +731,8 @@ public partial class MainForm : Form
     {
         // 自動保存タイマーを停止（Save()との書き込み競合を防止）
         _autoSaveTimer.Stop();
+        // 進行中の非同期保存があれば完了を待機（ファイル競合防止）
+        try { _lastSaveTask?.Wait(TimeSpan.FromSeconds(2)); } catch { }
 
         // 状態保存
         _appData.Config.WindowX = this.Location.X;
@@ -738,14 +753,22 @@ public partial class MainForm : Form
     {
         // 新しいフォントを生成
         var newFont = _appData.Config.GetFont();
-        // 同一オブジェクトでない場合のみ差し替える
-        if (txtMain.Font != newFont)
+        // フォント名・サイズ・スタイルが同一なら差し替え不要（無駄な GDI 生成を防ぐ）
+        bool sameFont = txtMain.Font.Name == newFont.Name
+                     && txtMain.Font.Size == newFont.Size
+                     && txtMain.Font.Style == newFont.Style;
+        if (!sameFont)
         {
             var oldFont = txtMain.Font;
             txtMain.Font = newFont;
             // フォームのデフォルトフォントと同一参照のものはDisposeしない（破壊するとフォーム全体がクラッシュする）
             if (oldFont != this.Font)
                 oldFont?.Dispose();
+        }
+        else
+        {
+            // 同一フォントなので新しく生成したものは不要、即解放
+            newFont.Dispose();
         }
 
         this.TopMost = _appData.Config.IsTopMost;
@@ -863,12 +886,8 @@ public partial class MainForm : Form
 
         if (!string.IsNullOrWhiteSpace(text))
         {
-            try
-            {
-                string url = "https://www.google.com/search?q=" + Uri.EscapeDataString(text);
-                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-            }
-            catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_BrowserOpen") ?? "Failed to open browser", ex); }
+            string url = "https://www.google.com/search?q=" + Uri.EscapeDataString(text);
+            OpenUrl(url);
         }
     }
 
@@ -886,7 +905,8 @@ public partial class MainForm : Form
     private void AutoSaveTimer_Tick(object? sender, EventArgs e)
     {
         _autoSaveTimer.Stop();
-        _appData.SaveMemoAsync(txtMain.Text);
+        // 非同期保存タスクをフィールドに保持（FormClosingで完了を待機するため）
+        _lastSaveTask = _appData.SaveMemoAsync(txtMain.Text);
     }
 
     // RichTextBox内蔵のUndo/Redo状態からボタンの有効無効を更新
@@ -935,17 +955,8 @@ public partial class MainForm : Form
         
         pnlSearchBar.Height = tsSearch.PreferredSize.Height > 28 ? tsSearch.PreferredSize.Height : 32;
 
-        // Attach custom tooltip logic
-        foreach (ToolStripItem item in tsSearch.Items)
-        {
-            if (item is ToolStripTextBox) continue;
-            item.MouseEnter += ToolStripItem_MouseEnter;
-            item.MouseLeave += ToolStripItem_MouseLeave;
-            item.MouseDown += (s, e) => {
-                _tooltipTimer.Stop();
-                _customToolTip.Hide(tsSearch);
-            };
-        }
+        // カスタムツールチップイベントを一括登録
+        AttachTooltipEvents(tsSearch);
 
         pnlSearchBar.Controls.Add(tsSearch);
         this.Controls.Add(pnlSearchBar);
@@ -1017,13 +1028,13 @@ public partial class MainForm : Form
             var (totalCount, currentIndex) = SearchHelper.CountAllMatches(txtMain, searchText, index, btnMatchCase.Checked, btnWholeWord.Checked);
             string fmt = LocalizationManager.GetString("Search_MatchCount") ?? "{0} 件中 {1} 件目";
             lblSearchMessage.Text = string.Format(fmt, totalCount, currentIndex);
-            lblSearchMessage.ForeColor = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark
+            lblSearchMessage.ForeColor = ThemeManager.IsDark
                 ? Color.FromArgb(180, 180, 180) : Color.FromArgb(80, 80, 80);
         }
         else
         {
             lblSearchMessage.Text = LocalizationManager.GetString("Search_NotFound") ?? "見つかりません";
-            lblSearchMessage.ForeColor = ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark ? Color.LightCoral : Color.Red;
+            lblSearchMessage.ForeColor = ThemeManager.IsDark ? Color.LightCoral : Color.Red;
         }
     }
 
@@ -1080,11 +1091,7 @@ public partial class MainForm : Form
     {
         if (!string.IsNullOrWhiteSpace(e.LinkText))
         {
-            try
-            {
-                Process.Start(new ProcessStartInfo(e.LinkText) { UseShellExecute = true });
-            }
-            catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_LinkOpen") ?? "Could not open link", ex); }
+            OpenUrl(e.LinkText);
         }
     }
 

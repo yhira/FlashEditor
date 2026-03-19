@@ -13,15 +13,17 @@ public class AppData
 
     public string MemoContent { get; set; } = "";
 
+    // エラーログファイルのパス
+    private static readonly string ErrorLogPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
+
     // エラーをログファイルに記録し、ダイアログで表示する
     internal static void ReportError(string context, Exception ex)
     {
         // ログファイルに記録
         try
         {
-            string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
             string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {context}: {ex.Message}\n";
-            File.AppendAllText(logPath, entry);
+            File.AppendAllText(ErrorLogPath, entry);
         }
         catch { /* ログ書き込み自体の失敗は無視 */ }
 
@@ -85,7 +87,8 @@ public class AppData
     }
 
     // 非同期でメモのみを保存する（クラッシュ耐性向上のためのバックアップ用）
-    public async void SaveMemoAsync(string text)
+    // async Task に変更: async void はイベントハンドラ以外では未処理例外でクラッシュのリスクがある
+    public async Task SaveMemoAsync(string text)
     {
         MemoContent = text;
         try
@@ -100,9 +103,8 @@ public class AppData
             // バックグラウンドでのバックアップ失敗は目障りになるためダイアログではなくログにのみ記録
             try
             {
-                string logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "error.log");
                 string entry = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] Failed to auto-backup memo: {ex.Message}\n";
-                File.AppendAllText(logPath, entry);
+                File.AppendAllText(ErrorLogPath, entry);
             }
             catch { }
         }

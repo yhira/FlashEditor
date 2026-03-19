@@ -41,7 +41,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
             var rect = new Rectangle(0, 0, button.Width, button.Height);
             
             // テーマに基づいたハイライト色の選択
-            bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+            bool isDark = ThemeManager.IsDark;
             Color hoverColor = isDark ? Color.FromArgb(80, 80, 80) : Color.FromArgb(200, 220, 240);
             
             using var brush = new SolidBrush(hoverColor);
@@ -60,12 +60,12 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // ToolStrip背景をフラットに描画（ダークテーマ対応）
     protected override void OnRenderToolStripBackground(ToolStripRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
         
         if (isDark)
         {
             // ダークテーマ: フラットな背景
-            using var brush = new SolidBrush(Color.FromArgb(45, 45, 48));
+            using var brush = new SolidBrush(ThemeManager.DarkToolStripBackground);
             e.Graphics.FillRectangle(brush, e.AffectedBounds);
         }
         else
@@ -79,10 +79,10 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // ToolStripの下部にエディターとの区切り線を描画
     protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
         
         // 下辺のみに区切り線を描画
-        Color borderColor = isDark ? Color.FromArgb(63, 63, 70) : Color.FromArgb(204, 206, 219);
+        Color borderColor = isDark ? ThemeManager.DarkBorder : Color.FromArgb(204, 206, 219);
         using var pen = new Pen(borderColor);
         e.Graphics.DrawLine(pen, 0, e.AffectedBounds.Bottom - 1, e.AffectedBounds.Right, e.AffectedBounds.Bottom - 1);
     }
@@ -90,12 +90,12 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // セパレーターをテーマに合った色で描画
     protected override void OnRenderSeparator(ToolStripSeparatorRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
         
         if (e.Vertical)
         {
             // 縦セパレーター
-            Color sepColor = isDark ? Color.FromArgb(63, 63, 70) : Color.FromArgb(190, 195, 200);
+            Color sepColor = isDark ? ThemeManager.DarkBorder : Color.FromArgb(190, 195, 200);
             int x = e.Item.Width / 2;
             using var pen = new Pen(sepColor);
             e.Graphics.DrawLine(pen, x, 4, x, e.Item.Height - 4);
@@ -103,7 +103,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
         else
         {
             // 横セパレーター（コンテキストメニュー内）
-            Color sepColor = isDark ? Color.FromArgb(63, 63, 70) : Color.FromArgb(215, 215, 215);
+            Color sepColor = isDark ? ThemeManager.DarkBorder : Color.FromArgb(215, 215, 215);
             int y = e.Item.Height / 2;
             // アイコン領域の右端からセパレーターを描画
             int leftMargin = e.Item.Owner is ContextMenuStrip ? 28 : 0;
@@ -115,7 +115,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // チェックマークの背景と枠線をテーマに合わせて描画
     protected override void OnRenderItemCheck(ToolStripItemImageRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
 
         var rect = new Rectangle(3, 1, e.Item.Height - 3, e.Item.Height - 3);
 
@@ -153,7 +153,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // コンテキストメニュー項目のホバー背景を描画
     protected override void OnRenderMenuItemBackground(ToolStripItemRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
 
         if (e.Item.Selected && e.Item.Enabled)
         {
@@ -178,7 +178,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // コンテキストメニュー項目のテキスト色をテーマに応じて変更
     protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
 
         if (e.Item.Owner is ContextMenuStrip || e.Item.OwnerItem != null)
         {
@@ -193,7 +193,7 @@ public class CustomToolStripRenderer : ToolStripProfessionalRenderer
     // コンテキストメニュー左側のアイコン領域の背景色を変更
     protected override void OnRenderImageMargin(ToolStripRenderEventArgs e)
     {
-        bool isDark = (ThemeManager.CurrentTheme == ThemeManager.ThemeMode.Dark);
+        bool isDark = ThemeManager.IsDark;
 
         if (isDark)
         {

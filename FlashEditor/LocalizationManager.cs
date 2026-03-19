@@ -11,6 +11,9 @@ public static class LocalizationManager
     private static Dictionary<string, string> _strings = new Dictionary<string, string>();
     public static string CurrentLanguage { get; private set; } = "ja";
 
+    // 言語ファイルの格納ディレクトリ
+    private static readonly string LangDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lang");
+
     // 読み込み済みの言語一覧。キー: ファイル名(拡張子なし), 値: LangName(日本語等)
     // 設定画面のコンボボックスで選択できるようにするため保持します。
     public static List<LanguageInfo> AvailableLanguages { get; private set; } = new List<LanguageInfo>();
@@ -29,11 +32,10 @@ public static class LocalizationManager
     public static void Initialize()
     {
         AvailableLanguages.Clear();
-        string langDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lang");
         
-        if (Directory.Exists(langDir))
+        if (Directory.Exists(LangDir))
         {
-            var files = Directory.GetFiles(langDir, "*.json");
+            var files = Directory.GetFiles(LangDir, "*.json");
             foreach (var file in files)
             {
                 try
@@ -63,16 +65,16 @@ public static class LocalizationManager
     /// </summary>
     public static void LoadLanguage(string langCode)
     {
-        string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lang", $"{langCode}.json");
+        string filePath = Path.Combine(LangDir, $"{langCode}.json");
         
         // 指定された言語が存在しない場合は日本語(ja)か英語(en)にフォールバック
         if (!File.Exists(filePath))
         {
-            filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lang", "ja.json");
+            filePath = Path.Combine(LangDir, "ja.json");
             langCode = "ja";
             if (!File.Exists(filePath))
             {
-                filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "lang", "en.json");
+                filePath = Path.Combine(LangDir, "en.json");
                 langCode = "en";
             }
         }

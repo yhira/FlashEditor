@@ -21,6 +21,24 @@ public static class ThemeManager
 
     public static ThemeMode CurrentTheme { get; private set; } = ThemeMode.Light;
 
+    // テーマ判定のショートカットプロパティ
+    public static bool IsDark => CurrentTheme == ThemeMode.Dark;
+
+    // === ダークテーマの共通色定数 ===
+    public static readonly Color DarkBackground = Color.FromArgb(30, 30, 30);
+    public static readonly Color DarkToolStripBackground = Color.FromArgb(45, 45, 48);
+    public static readonly Color DarkControlBackground = Color.FromArgb(50, 50, 50);
+    public static readonly Color DarkText = Color.WhiteSmoke;
+    public static readonly Color DarkBorder = Color.FromArgb(63, 63, 70);
+
+    // DWM Dark Mode 属性を設定する共通ヘルパー
+    private static void SetDwmDarkMode(IntPtr handle, bool darkMode)
+    {
+        int value = darkMode ? 1 : 0;
+        DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref value, sizeof(int));
+        DwmSetWindowAttribute(handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref value, sizeof(int));
+    }
+
     public static void ApplyTheme(Form form, ThemeMode mode)
     {
         CurrentTheme = mode;
@@ -34,19 +52,14 @@ public static class ThemeManager
             ApplyLightTheme(form);
         }
 
-        // Title Bar Dark Mode
-        bool useDarkMode = (mode == ThemeMode.Dark);
-        int useDarkModeInt = useDarkMode ? 1 : 0;
-        
-        // Try both attributes for compatibility
-        DwmSetWindowAttribute(form.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkModeInt, sizeof(int));
-        DwmSetWindowAttribute(form.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkModeInt, sizeof(int));
+        // Title Bar Dark Mode（共通ヘルパーを使用）
+        SetDwmDarkMode(form.Handle, mode == ThemeMode.Dark);
     }
 
     private static void ApplyDarkTheme(Form form)
     {
-        form.BackColor = Color.FromArgb(30, 30, 30);
-        form.ForeColor = Color.WhiteSmoke;
+        form.BackColor = DarkBackground;
+        form.ForeColor = DarkText;
 
         foreach (Control c in form.Controls)
         {
@@ -67,12 +80,14 @@ public static class ThemeManager
 
     private static void UpdateControlTheme(Control c, ThemeMode mode)
     {
+        bool isDark = (mode == ThemeMode.Dark);
+
         if (c is RichTextBox rtb)
         {
-            if (mode == ThemeMode.Dark)
+            if (isDark)
             {
-                rtb.BackColor = Color.FromArgb(30, 30, 30); // 少し明るめ
-                rtb.ForeColor = Color.WhiteSmoke;
+                rtb.BackColor = DarkBackground;
+                rtb.ForeColor = DarkText;
                 // スクロールバーをダークモードに対応させる
                 if (!rtb.IsHandleCreated) { _ = rtb.Handle; }
                 SetWindowTheme(rtb.Handle, "DarkMode_Explorer", null);
@@ -90,11 +105,10 @@ public static class ThemeManager
         }
         else if (c is ToolStrip ts)
         {
-             if (mode == ThemeMode.Dark)
+            if (isDark)
             {
-                ts.BackColor = Color.FromArgb(45, 45, 48);
-                ts.ForeColor = Color.WhiteSmoke;
-                // Renderer could be customized for better look
+                ts.BackColor = DarkToolStripBackground;
+                ts.ForeColor = DarkText;
             }
             else
             {
@@ -106,12 +120,10 @@ public static class ThemeManager
             {
                 if (item is ToolStripTextBox tstb)
                 {
-                    if (mode == ThemeMode.Dark)
+                    if (isDark)
                     {
-                        tstb.BackColor = Color.FromArgb(50, 50, 50);
-                        tstb.ForeColor = Color.WhiteSmoke;
-                        // To properly style the inner TextBox border, unfortunately ToolStripTextBox is limited,
-                        // but setting BackColor and ForeColor is sufficient for the inside.
+                        tstb.BackColor = DarkControlBackground;
+                        tstb.ForeColor = DarkText;
                     }
                     else
                     {
@@ -123,10 +135,10 @@ public static class ThemeManager
         }
         else if (c is Button btn)
         {
-             if (mode == ThemeMode.Dark)
+            if (isDark)
             {
-                btn.BackColor = Color.FromArgb(50, 50, 50);
-                btn.ForeColor = Color.WhiteSmoke;
+                btn.BackColor = DarkControlBackground;
+                btn.ForeColor = DarkText;
                 btn.FlatStyle = FlatStyle.Flat;
                 btn.FlatAppearance.BorderColor = Color.Gray;
             }
@@ -140,10 +152,10 @@ public static class ThemeManager
         // コンボボックスのテーマ適用
         else if (c is ComboBox cmb)
         {
-            if (mode == ThemeMode.Dark)
+            if (isDark)
             {
-                cmb.BackColor = Color.FromArgb(50, 50, 50);
-                cmb.ForeColor = Color.WhiteSmoke;
+                cmb.BackColor = DarkControlBackground;
+                cmb.ForeColor = DarkText;
                 // FlatStyleがFlatだとWinFormsが独自描画してしまいSetWindowThemeが効かないためStandardにする
                 cmb.FlatStyle = FlatStyle.Standard;
                 
@@ -152,9 +164,8 @@ public static class ThemeManager
                 {
                     _ = cmb.Handle; // 強制的にハンドルを作成
                 }
-                int useDarkModeInt = 1;
-                DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkModeInt, sizeof(int));
-                DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkModeInt, sizeof(int));
+                // 共通ヘルパーを使用
+                SetDwmDarkMode(cmb.Handle, true);
                 SetWindowTheme(cmb.Handle, "DarkMode_CFD", null);
             }
             else
@@ -165,9 +176,8 @@ public static class ThemeManager
 
                 if (cmb.IsHandleCreated)
                 {
-                    int useDarkModeInt = 0;
-                    DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE, ref useDarkModeInt, sizeof(int));
-                    DwmSetWindowAttribute(cmb.Handle, DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, ref useDarkModeInt, sizeof(int));
+                    // 共通ヘルパーを使用
+                    SetDwmDarkMode(cmb.Handle, false);
                     SetWindowTheme(cmb.Handle, "", null); // テーマ属性をリセット
                 }
             }
