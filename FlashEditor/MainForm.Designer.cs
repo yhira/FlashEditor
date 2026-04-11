@@ -216,7 +216,7 @@ partial class MainForm
         // 
         this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(800, 450);
+        this.ClientSize = new System.Drawing.Size(800, 600);
         this.Controls.Add(this.txtMain);
         this.Controls.Add(this.toolStrip1);
         this.Name = "MainForm";

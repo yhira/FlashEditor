@@ -166,8 +166,8 @@ public class AppConfig
     
     public int WindowX { get; set; } = 100;
     public int WindowY { get; set; } = 100;
-    public int WindowWidth { get; set; } = 1600;
-    public int WindowHeight { get; set; } = 1200;
+    public int WindowWidth { get; set; } = 800;
+    public int WindowHeight { get; set; } = 600;
 
     // ToolButtonSizeSetting からピクセルサイズを返すヘルパー
     public int GetToolButtonPixelSize()
