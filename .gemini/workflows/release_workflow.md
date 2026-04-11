@@ -6,13 +6,13 @@
 
 リリース用のZIPパッケージには必ず以下のファイルを含めます。
 
-* **`FlashEditor.exe`**
+- **`FlashEditor.exe`**
   （場所：`bin\Release\net9.0-windows\win-x64\publish\` 等にある単一実行ファイル）
-* **`lang` フォルダ**
+- **`lang` フォルダ**
   多言語対応のJSONファイル群。
-* **`README.md`**
+- **`README.md`**
   プロジェクト直下にある利用方法。
-* **`LICENSE`**
+- **`LICENSE`**
   プロジェクトのライセンス。
 
 ※ `FlashEditor.pdb` は任意です。除外しても問題ありません。
@@ -66,8 +66,10 @@ Copy-Item -Path "FlashEditor\bin\Release\net9.0-windows\win-x64\publish\lang\*" 
 Copy-Item -Path "README.md" -Destination $distDir
 Copy-Item -Path "LICENSE" -Destination $distDir
 
-# 4. ZIPに圧縮
-Compress-Archive -Path $distDir -DestinationPath "dist\FlashEditor_Release.zip" -Force
+# 4. ZIPに圧縮 (日時の付与)
+$timestamp = Get-Date -Format "yyyyMMddHHmm"
+$zipName = "FlashEditor_${timestamp}.zip"
+Compress-Archive -Path $distDir -DestinationPath "dist\$zipName" -Force
 
 # 5. 作業用フォルダの後片付け
 Remove-Item -Path $distDir -Recurse -Force
@@ -78,4 +80,4 @@ Get-ChildItem -Path dist
 
 ## 5. 注意事項
 
-* 生成された `.zip` ファイルおよび `dist/` ディレクトリは `.gitignore` の対象としてあるため、誤ってGitリポジトリにコミットされることはありません。
+- 生成された `.zip` ファイルおよび `dist/` ディレクトリは `.gitignore` の対象としてあるため、誤ってGitリポジトリにコミットされることはありません。
