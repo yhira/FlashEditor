@@ -12,6 +12,8 @@
     <BuildTime>$([System.DateTime]::Now.ToString("yyyyMMdd.HHmm"))</BuildTime>
     <InformationalVersion>$(BuildTime)</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>
