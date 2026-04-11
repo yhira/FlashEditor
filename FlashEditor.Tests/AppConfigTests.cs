@@ -43,12 +43,12 @@ public class AppConfigTests
     }
 
     [Fact]
-    public void デフォルトのウィンドウサイズは1600x1200()
+    public void デフォルトのウィンドウサイズは800x600()
     {
         var config = new AppConfig();
 
-        config.WindowWidth.Should().Be(1600);
-        config.WindowHeight.Should().Be(1200);
+        config.WindowWidth.Should().Be(800);
+        config.WindowHeight.Should().Be(600);
     }
 
     // ===== SetFont / GetFont テスト =====
