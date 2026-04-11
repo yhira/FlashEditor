@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -8,6 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>FlashEditor.ico</ApplicationIcon>
     <Version>1.0.0</Version>
+    <!-- ビルド時刻を取得し、製品バージョンとして割り当てる -->
+    <BuildTime>$([System.DateTime]::Now.ToString("yyyyMMdd.HHmm"))</BuildTime>
+    <InformationalVersion>$(BuildTime)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -30,6 +30,12 @@ public partial class AboutDialog : Form
         // アセンブリからバージョン情報を自動取得
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         lblVersion.Text = $"Version {version?.Major}.{version?.Minor}.{version?.Build}";
+        
+        // 製品バージョンからビルド日時文字列を取得
+        var attrib = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+        string buildTime = attrib?.InformationalVersion ?? "Unknown";
+        lblBuild.Text = $"Build {buildTime}";
+        
         lblAuthor.Text = LocalizationManager.GetString("About_Author") ?? "Author: yhira";
         btnOk.Text = LocalizationManager.GetString("Button_OK") ?? "OK";
     }

@@ -5,6 +5,7 @@ partial class AboutDialog
     private System.ComponentModel.IContainer components = null;
     private Label lblTitle;
     private Label lblVersion;
+    private Label lblBuild;
     private Label lblAuthor;
     private LinkLabel lnkUrl;
     private Button btnOk;
@@ -22,6 +23,7 @@ partial class AboutDialog
     {
         this.lblTitle = new System.Windows.Forms.Label();
         this.lblVersion = new System.Windows.Forms.Label();
+        this.lblBuild = new System.Windows.Forms.Label();
         this.lblAuthor = new System.Windows.Forms.Label();
         this.lnkUrl = new System.Windows.Forms.LinkLabel();
         this.btnOk = new System.Windows.Forms.Button();
@@ -46,10 +48,19 @@ partial class AboutDialog
         this.lblVersion.TabIndex = 1;
         this.lblVersion.Text = "Version 1.0";
         // 
+        // lblBuild
+        // 
+        this.lblBuild.AutoSize = true;
+        this.lblBuild.Location = new System.Drawing.Point(20, 68);
+        this.lblBuild.Name = "lblBuild";
+        this.lblBuild.Size = new System.Drawing.Size(34, 15);
+        this.lblBuild.TabIndex = 5;
+        this.lblBuild.Text = "Build";
+        // 
         // lblAuthor
         // 
         this.lblAuthor.AutoSize = true;
-        this.lblAuthor.Location = new System.Drawing.Point(20, 80);
+        this.lblAuthor.Location = new System.Drawing.Point(20, 98);
         this.lblAuthor.Name = "lblAuthor";
         this.lblAuthor.Size = new System.Drawing.Size(68, 15);
         this.lblAuthor.TabIndex = 2;
@@ -58,7 +69,7 @@ partial class AboutDialog
         // lnkUrl
         // 
         this.lnkUrl.AutoSize = true;
-        this.lnkUrl.Location = new System.Drawing.Point(20, 110);
+        this.lnkUrl.Location = new System.Drawing.Point(20, 128);
         this.lnkUrl.Name = "lnkUrl";
         this.lnkUrl.Size = new System.Drawing.Size(95, 15);
         this.lnkUrl.TabIndex = 3;
@@ -70,7 +81,7 @@ partial class AboutDialog
         // 
         this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
         this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-        this.btnOk.Location = new System.Drawing.Point(197, 146);
+        this.btnOk.Location = new System.Drawing.Point(197, 164);
         this.btnOk.Name = "btnOk";
         this.btnOk.Size = new System.Drawing.Size(75, 25);
         this.btnOk.TabIndex = 4;
@@ -82,10 +93,11 @@ partial class AboutDialog
         this.AcceptButton = this.btnOk;
         this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
         this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-        this.ClientSize = new System.Drawing.Size(284, 186);
+        this.ClientSize = new System.Drawing.Size(284, 204);
         this.Controls.Add(this.btnOk);
         this.Controls.Add(this.lnkUrl);
         this.Controls.Add(this.lblAuthor);
+        this.Controls.Add(this.lblBuild);
         this.Controls.Add(this.lblVersion);
         this.Controls.Add(this.lblTitle);
         this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
