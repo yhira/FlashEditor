@@ -28,10 +28,10 @@ static class Program
         {
             // 既に起動中のプロセスを探して最前面に表示する
             using var currentProcess = Process.GetCurrentProcess();
-            foreach (var process in Process.GetProcessesByName(currentProcess.ProcessName))
+            var processes = Process.GetProcessesByName(currentProcess.ProcessName);
+            try
             {
-                // Process オブジェクトは IDisposable なので using で確実に解放
-                using (process)
+                foreach (var process in processes)
                 {
                     if (process.Id != currentProcess.Id && process.MainWindowHandle != IntPtr.Zero)
                     {
@@ -43,6 +43,14 @@ static class Program
                         SetForegroundWindow(hWnd);
                         break;
                     }
+                }
+            }
+            finally
+            {
+                // GetProcessesByNameで確保された全プロセスインスタンスのWin32ハンドルを確実に解放する
+                foreach (var process in processes)
+                {
+                    process.Dispose();
                 }
             }
             return;

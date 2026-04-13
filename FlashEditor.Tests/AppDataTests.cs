@@ -3,6 +3,8 @@ using Xunit;
 
 namespace FlashEditor.Tests;
 
+// カレントディレクトリを変更するテスト同士の並列実行を防止
+[Collection("FileSystemTests")]
 public class AppDataTests : IDisposable
 {
     // テスト用の一時ディレクトリ

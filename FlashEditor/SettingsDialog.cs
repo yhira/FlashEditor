@@ -10,11 +10,14 @@ public partial class SettingsDialog : Form
     public ThemeSetting CurrentTheme { get; private set; }
     public ToolButtonSizeSetting CurrentToolButtonSize { get; private set; }
     public string CurrentLanguage { get; private set; }
+    // 元の親フォームから受け取ったフォント参照（これはDisposeしてはいけない）
+    private readonly Font _originalFont;
 
     public SettingsDialog(Font currentFont, ThemeSetting currentTheme, ToolButtonSizeSetting currentToolButtonSize, string currentLanguage)
     {
         InitializeComponent();
         CurrentFont = currentFont;
+        _originalFont = currentFont;
         CurrentTheme = currentTheme;
         CurrentToolButtonSize = currentToolButtonSize;
         CurrentLanguage = currentLanguage;
@@ -121,6 +124,9 @@ public partial class SettingsDialog : Form
         fd.MaxSize = 48;
         if (fd.ShowDialog() == DialogResult.OK)
         {
+            // 前回のFontDialogで生成されたフォントを解放（元のフォントは親フォームが管理するため解放しない）
+            if (CurrentFont != _originalFont)
+                CurrentFont.Dispose();
             CurrentFont = fd.Font;
             UpdateFontPreview();
         }

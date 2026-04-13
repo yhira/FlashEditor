@@ -10,12 +10,14 @@ partial class MainForm
         {
             components.Dispose();
         }
-        // Timer・ToolTip の GDI リソースを明示的に解放（リーク防止）
+        // Timer・ToolTip・Icon の GDI リソースを明示的に解放（リーク防止）
         if (disposing)
         {
             _autoSaveTimer.Dispose();
             _tooltipTimer.Dispose();
             _customToolTip.Dispose();
+            // フォームアイコンのGDIリソースを明示解放
+            this.Icon?.Dispose();
         }
         base.Dispose(disposing);
     }

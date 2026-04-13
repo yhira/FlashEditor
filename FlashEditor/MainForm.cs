@@ -15,6 +15,8 @@ public partial class MainForm : Form
     private ToolStripItem? _hoveredItem;
     // 進行中の非同期保存タスクを追跡（FormClosing時の競合防止用）
     private Task? _lastSaveTask;
+    // クリップボードにテキストがあるかのキャッシュ（WM_CLIPBOARDUPDATEで更新）
+    private bool _clipboardHasText;
     
     // Search Bar Components
     private Panel pnlSearchBar = null!;
@@ -30,6 +32,15 @@ public partial class MainForm : Form
     // Win32 API: RichTextBox 内部のテキスト描画領域を設定するために使用
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, ref RECT lParam);
+
+    // Win32 API: クリップボード変更通知の登録・解除
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool AddClipboardFormatListener(IntPtr hwnd);
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern bool RemoveClipboardFormatListener(IntPtr hwnd);
+
+    // クリップボード変更通知メッセージ
+    private const int WM_CLIPBOARDUPDATE = 0x031D;
 
     [StructLayout(LayoutKind.Sequential)]
     private struct RECT { public int Left, Top, Right, Bottom; }
@@ -141,8 +152,14 @@ public partial class MainForm : Form
     // コンテキストメニューを再構築する（言語変更時などにも呼ぶ）
     private void BuildContextMenu()
     {
-        // 古いコンテキストメニューを解放（GDIハンドルリーク防止）
-        txtMain.ContextMenuStrip?.Dispose();
+        // 古いコンテキストメニューの画像を先に解放してからDisposeする（GDIハンドルリーク防止）
+        var oldMenu = txtMain.ContextMenuStrip;
+        if (oldMenu != null)
+        {
+            foreach (ToolStripItem item in oldMenu.Items)
+                item.Image?.Dispose();
+            oldMenu.Dispose();
+        }
 
         var contextMenu = new ContextMenuStrip();
         // ToolStrip と同じカスタムレンダラーを適用してダークテーマに対応
@@ -452,15 +469,16 @@ public partial class MainForm : Form
     // 選択状態に応じてボタンの有効/無効を更新
     private void UpdateSelectionButtons()
     {
-        bool hasSelection = !string.IsNullOrEmpty(txtMain.SelectedText);
+        // SelectionLengthで判定（SelectedTextは毎回コピー文字列を生成するため無駄なメモリ確保を回避）
+        bool hasSelection = txtMain.SelectionLength > 0;
         tsbCut.Enabled = hasSelection;
         tsbCopy.Enabled = hasSelection;
         tsbDelete.Enabled = hasSelection;
         tsbGoogleSearch.Enabled = hasSelection;
 
-        // クリップボードにテキストがあるかチェック
-        bool hasClipboardText = Clipboard.ContainsText();
-        tsbPaste.Enabled = hasClipboardText;
+        // クリップボードの状態はWM_CLIPBOARDUPDATEイベントでキャッシュ済みの値を使用
+        // （直接Clipboard.ContainsText()を呼ぶとOS競合でExternalExceptionが発生する危険があるため）
+        tsbPaste.Enabled = _clipboardHasText;
     }
 
     // 指定サイズのアイコンを生成する（デフォルトは設定値サイズ、コンテキストメニュー用は16x16）
@@ -721,24 +739,45 @@ public partial class MainForm : Form
             string icoPath = Path.Combine(AppContext.BaseDirectory, "FlashEditor.ico");
             if (File.Exists(icoPath))
             {
+                // WinFormsのフォームの初期Iconは内部的な共有リソース（Form.DefaultIcon）であるため、
+                // これをDisposeしてしまうと他のダイアログが開く際にObjectDisposedExceptionが発生する。
+                // したがって、古いIconのDisposeは行わず単に上書きする。
                 this.Icon = new Icon(icoPath);
             }
         }
         catch (Exception ex) { AppData.ReportError(LocalizationManager.GetString("Error_IconLoad") ?? "Failed to load icon file", ex); }
+
+        // クリップボード変更通知を登録（ペーストボタンの有効/無効をイベント駆動で更新）
+        AddClipboardFormatListener(this.Handle);
+        // 初期状態のクリップボードチェック
+        try { _clipboardHasText = Clipboard.ContainsText(); } catch { }
+        tsbPaste.Enabled = _clipboardHasText;
     }
 
     private void MainForm_FormClosing(object? sender, FormClosingEventArgs e)
     {
+        // クリップボード変更通知を解除
+        RemoveClipboardFormatListener(this.Handle);
         // 自動保存タイマーを停止（Save()との書き込み競合を防止）
         _autoSaveTimer.Stop();
         // 進行中の非同期保存があれば完了を待機（ファイル競合防止）
         try { _lastSaveTask?.Wait(TimeSpan.FromSeconds(2)); } catch { }
 
-        // 状態保存
-        _appData.Config.WindowX = this.Location.X;
-        _appData.Config.WindowY = this.Location.Y;
-        _appData.Config.WindowWidth = this.Size.Width;
-        _appData.Config.WindowHeight = this.Size.Height;
+        // 状態保存（WinForms特有の罠である「最小化状態の極端な負数(-32000)」の保存による次回画面外バグを防ぐ）
+        if (this.WindowState == FormWindowState.Normal)
+        {
+            _appData.Config.WindowX = this.Location.X;
+            _appData.Config.WindowY = this.Location.Y;
+            _appData.Config.WindowWidth = this.Size.Width;
+            _appData.Config.WindowHeight = this.Size.Height;
+        }
+        else
+        {
+            _appData.Config.WindowX = this.RestoreBounds.X;
+            _appData.Config.WindowY = this.RestoreBounds.Y;
+            _appData.Config.WindowWidth = this.RestoreBounds.Width;
+            _appData.Config.WindowHeight = this.RestoreBounds.Height;
+        }
         _appData.Config.IsTopMost = this.TopMost;
         
         // Fontは変更時に保存しているのでここではサイズなど
@@ -886,6 +925,8 @@ public partial class MainForm : Form
 
         if (!string.IsNullOrWhiteSpace(text))
         {
+            // URL長制限を考慮して検索テキストを2000文字に制限（巨大テキストのOOM防止）
+            if (text.Length > 2000) text = text[..2000];
             string url = "https://www.google.com/search?q=" + Uri.EscapeDataString(text);
             OpenUrl(url);
         }
@@ -905,6 +946,9 @@ public partial class MainForm : Form
     private void AutoSaveTimer_Tick(object? sender, EventArgs e)
     {
         _autoSaveTimer.Stop();
+        // 前回の保存タスクが完了していれば参照を解放（Task内部リソースのGC回収を促進）
+        if (_lastSaveTask?.IsCompleted == true)
+            _lastSaveTask = null;
         // 非同期保存タスクをフィールドに保持（FormClosingで完了を待機するため）
         _lastSaveTask = _appData.SaveMemoAsync(txtMain.Text);
     }
@@ -1043,9 +1087,11 @@ public partial class MainForm : Form
         pnlSearchBar.Visible = true;
         pnlSearchBar.BringToFront(); // RichTextBoxの上に持ってくる
         
-        if (!string.IsNullOrEmpty(txtMain.SelectedText) && !txtMain.SelectedText.Contains('\n'))
+        // SelectedTextは毎回コピーを生成するためローカル変数にキャッシュして無駄なメモリ確保を回避
+        var selectedText = txtMain.SelectedText;
+        if (!string.IsNullOrEmpty(selectedText) && !selectedText.Contains('\n'))
         {
-            txtSearchInput.Text = txtMain.SelectedText;
+            txtSearchInput.Text = selectedText;
         }
         txtSearchInput.Focus();
         txtSearchInput.SelectAll();
@@ -1058,6 +1104,24 @@ public partial class MainForm : Form
             pnlSearchBar.Visible = false;
             txtMain.Focus();
         }
+    }
+
+    protected override void WndProc(ref Message m)
+    {
+        // クリップボード変更通知を受信してペーストボタンの有効/無効を更新
+        if (m.Msg == WM_CLIPBOARDUPDATE)
+        {
+            try
+            {
+                _clipboardHasText = Clipboard.ContainsText();
+            }
+            catch (System.Runtime.InteropServices.ExternalException)
+            {
+                // 他のプロセスがクリップボードをロック中の場合は前回の値を維持
+            }
+            tsbPaste.Enabled = _clipboardHasText;
+        }
+        base.WndProc(ref m);
     }
 
     protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
@@ -1098,7 +1162,7 @@ public partial class MainForm : Form
     // 選択中のテキストを削除する
     private void DeleteSelectedText()
     {
-        if (!string.IsNullOrEmpty(txtMain.SelectedText))
+        if (txtMain.SelectionLength > 0)
         {
             txtMain.SelectedText = "";
         }
@@ -1107,11 +1171,19 @@ public partial class MainForm : Form
     // クリップボードからプレーンテキストのみ貼り付け（装飾を除去）
     private void PastePlainText()
     {
-        if (Clipboard.ContainsText())
+        try
         {
-            // プレーンテキストのみ取得して貼り付け
-            string text = Clipboard.GetText(TextDataFormat.UnicodeText);
-            txtMain.SelectedText = text;
+            if (Clipboard.ContainsText())
+            {
+                // プレーンテキストのみ取得して貼り付け
+                string text = Clipboard.GetText(TextDataFormat.UnicodeText);
+                txtMain.SelectedText = text;
+            }
+        }
+        catch (System.Runtime.InteropServices.ExternalException)
+        {
+            // 他のプロセスがクリップボードをロックしている場合に発生する例外をキャッチ（CLIPBRD_E_CANT_OPEN）
+            // UIクラッシュを防ぐため握り潰す（必要に応じて小さくログやステータスに出す手もあるがメモ帳なら無視が標準的）
         }
     }
 }

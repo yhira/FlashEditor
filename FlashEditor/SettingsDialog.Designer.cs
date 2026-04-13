@@ -15,6 +15,10 @@ partial class SettingsDialog
         if (disposing)
         {
             _previewFont?.Dispose();
+            // キャンセル時用: FontDialogで生成されたフォントが残っていれば解放
+            // （元の親フォームのフォントは解放しない）
+            if (CurrentFont != _originalFont)
+                CurrentFont?.Dispose();
         }
         base.Dispose(disposing);
     }

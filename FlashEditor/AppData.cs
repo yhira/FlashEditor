@@ -70,16 +70,22 @@ public class AppData
         catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_ConfigSave") ?? "Failed to save config file", ex); }
 
         // Memo保存（自動保存との競合時はリトライ）
+        // File.WriteAllText は内部的に FileShare.Read で開くため、
+        // SaveMemoAsync（FileShare.ReadWrite）と競合して IOException が発生する。
+        // そのため FileStream を直接使い、同じ FileShare.ReadWrite に統一する。
         for (int retry = 0; retry < 3; retry++)
         {
             try
             {
-                File.WriteAllText(MemoFile, MemoContent, Encoding.UTF8);
+                using var fs = new FileStream(MemoFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite);
+                // BOMなしUTF-8で統一（SaveMemoAsyncのEncoding.UTF8と同じ動作にする）
+                using var writer = new StreamWriter(fs, new System.Text.UTF8Encoding(false));
+                writer.Write(MemoContent);
                 break;
             }
             catch (IOException) when (retry < 2)
             {
-                // 自動保存がファイルをロック中の場合、少し待ってリトライ
+                // 自動保存がファイルを使用中の場合、少し待ってリトライ
                 Thread.Sleep(100);
             }
             catch (Exception ex) { ReportError(LocalizationManager.GetString("Error_MemoSave") ?? "Failed to save memo file", ex); }
@@ -93,8 +99,8 @@ public class AppData
         MemoContent = text;
         try
         {
-            // 他の保存処理との競合を避けるため FileShare.ReadWrite などを検討するか、単純に再試行
-            using var sourceStream = new FileStream(MemoFile, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096, useAsync: true);
+            // 他の保存処理（アプリ終了時の同期保存等）との競合を避けるため FileShare.ReadWrite を指定しロックを防止
+            using var sourceStream = new FileStream(MemoFile, FileMode.Create, FileAccess.Write, FileShare.ReadWrite, bufferSize: 4096, useAsync: true);
             var bytes = Encoding.UTF8.GetBytes(text);
             await sourceStream.WriteAsync(bytes, 0, bytes.Length);
         }
@@ -191,13 +197,14 @@ public class AppConfig
     {
         try
         {
-            // 保存されたフォント名・サイズ・スタイルからフォントオブジェクトを作成
+            // 保存されたフォント名・サイズ・スタイルからフォントオブジェクトを作成して返す
             return new Font(FontName, FontSize, (FontStyle)FontStyleValue);
         }
         catch
         {
-            // 失敗した場合はシステムのデフォルトフォントを返す
-            return SystemFonts.DefaultFont;
+            // 失敗した場合はシステムのデフォルトフォントと同じ設定で新しく生成して返す
+            // （SystemFonts.DefaultFontを直接返すと、共有参照をDisposeされてしまう危険があるため）
+            return new Font(SystemFonts.DefaultFont.FontFamily, SystemFonts.DefaultFont.Size, SystemFonts.DefaultFont.Style);
         }
     }
 }
