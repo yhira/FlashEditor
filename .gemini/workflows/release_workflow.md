@@ -10,10 +10,10 @@
   （場所：`bin\Release\net9.0-windows\win-x64\publish\` 等にある単一実行ファイル）
 - **`lang` フォルダ**
   多言語対応のJSONファイル群。
-- **`README.md`**
-  プロジェクト直下にある利用方法。
-- **`LICENSE`**
-  プロジェクトのライセンス。
+- **`Readme.txt`**
+  配布用パッケージの概要や注意書き（ユーザーへの一番最初の入口）。
+- **`manual.md`**
+  詳細な操作マニュアル。
 
 ※ `FlashEditor.pdb` は任意です。除外しても問題ありません。
 
@@ -28,8 +28,8 @@ FlashEditor/
   │    ├── en.json
   │    ├── ja.json
   │    └── (その他のjsonファイル...)
-  ├── README.md
-  └── LICENSE
+  ├── Readme.txt
+  └── manual.md
 ```
 
 ## 3. 最新版のビルドと発行（必須の事前準備と教訓）
@@ -63,8 +63,8 @@ New-Item -ItemType Directory -Path "$distDir\lang" -Force | Out-Null
 # 3. リリースファイルを収集
 Copy-Item -Path "FlashEditor\bin\Release\net9.0-windows\win-x64\publish\FlashEditor.exe" -Destination $distDir
 Copy-Item -Path "FlashEditor\bin\Release\net9.0-windows\win-x64\publish\lang\*" -Destination "$distDir\lang" -Recurse
-Copy-Item -Path "README.md" -Destination $distDir
-Copy-Item -Path "LICENSE" -Destination $distDir
+Copy-Item -Path "Readme.txt" -Destination $distDir
+Copy-Item -Path "manual.md" -Destination $distDir
 
 # 4. ZIPに圧縮 (日時の付与)
 $timestamp = Get-Date -Format "yyyyMMddHHmm"
